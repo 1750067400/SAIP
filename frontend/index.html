@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产业园促进会会员管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-lg rounded-lg mb-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <h1 class="text-2xl font-bold text-gray-800">产业园促进会管理系统</h1>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <a href="index.html" class="bg-indigo-600 text-white px-3 py-2 rounded-md text-sm font-medium">会员管理</a>
+                    <a href="dashboard.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">仪表盘</a>
+                    <a href="appointment.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">服务预约</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">会员管理</h1>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">添加会员</h2>
+                <form id="addMemberForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">姓名</label>
+                        <input type="text" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">类型</label>
+                        <select name="type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <option value="COMPANY">公司</option>
+                            <option value="INDUSTRIAL_PARK">产业园单位</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">等级</label>
+                        <select name="level" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <option value="NORMAL">普通会员</option>
+                            <option value="DIRECTOR">理事</option>
+                            <option value="EXECUTIVE_DIRECTOR">常务理事</option>
+                            <option value="VICE_PRESIDENT">副会长</option>
+                            <option value="PRESIDENT">会长</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">添加</button>
+                </form>
+            </div>
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">会员列表</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">姓名</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">等级</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">更新时间</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memberList" class="bg-white divide-y divide-gray-200">
+                            <!-- 会员列表将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 获取会员列表
+        async function fetchMembers() {
+            try {
+                const response = await fetch('http://localhost:8080/api/members');
+                const result = await response.json();
+                if (result.code === 200) {
+                    const memberList = document.getElementById('memberList');
+                    memberList.innerHTML = result.data.map(member => `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.type}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.level}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.createdAt}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.updatedAt}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <button onclick="deleteMember(${member.id})" class="text-red-600 hover:text-red-900">删除</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('获取会员列表失败:', error);
+            }
+        }
+
+        // 添加会员
+        document.getElementById('addMemberForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const member = {
+                name: formData.get('name'),
+                type: formData.get('type'),
+                level: formData.get('level')
+            };
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/members', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(member)
+                });
+                const result = await response.json();
+                if (result.code === 200) {
+                    alert('添加成功');
+                    fetchMembers();
+                    e.target.reset();
+                } else {
+                    alert('添加失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('添加会员失败:', error);
+                alert('添加失败');
+            }
+        });
+
+        // 删除会员
+        async function deleteMember(id) {
+            if (confirm('确定要删除吗？')) {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/members/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    if (result.code === 200) {
+                        alert('删除成功');
+                        fetchMembers();
+                    } else {
+                        alert('删除失败: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('删除会员失败:', error);
+                    alert('删除失败');
+                }
+            }
+        }
+
+        // 页面加载时获取会员列表
+        fetchMembers();
+    </script>
+</body>
+</html> 

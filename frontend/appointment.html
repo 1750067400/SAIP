@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产业园促进会管理系统 - 服务预约</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 顶部导航 -->
+        <nav class="bg-white shadow-lg rounded-lg mb-8">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <h1 class="text-2xl font-bold text-gray-800">产业园促进会管理系统</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <a href="index.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">会员管理</a>
+                        <a href="dashboard.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">仪表盘</a>
+                        <a href="appointment.html" class="bg-indigo-600 text-white px-3 py-2 rounded-md text-sm font-medium">服务预约</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 预约系统 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">服务预约</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <form id="appointmentForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">会员姓名</label>
+                            <input type="text" name="memberName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">服务类型</label>
+                            <select name="serviceType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <option value="CONSULTING">咨询服务</option>
+                                <option value="TRAINING">培训服务</option>
+                                <option value="NETWORKING">交流活动</option>
+                                <option value="OTHER">其他服务</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">预约日期</label>
+                            <input type="date" name="appointmentDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">预约时间</label>
+                            <input type="time" name="appointmentTime" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">备注</label>
+                            <textarea name="remarks" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                        </div>
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">提交预约</button>
+                    </form>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">我的预约</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">会员姓名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">服务类型</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">预约日期</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">预约时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentList" class="bg-white divide-y divide-gray-200">
+                                <!-- 预约列表将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 服务类型映射
+        const serviceTypeMap = {
+            'CONSULTING': '咨询服务',
+            'TRAINING': '培训服务',
+            'NETWORKING': '交流活动',
+            'OTHER': '其他服务'
+        };
+
+        // 状态映射
+        const statusMap = {
+            'PENDING': '待确认',
+            'CONFIRMED': '已确认',
+            'CANCELLED': '已取消',
+            'COMPLETED': '已完成'
+        };
+
+        // 加载预约列表
+        async function loadAppointments() {
+            // 模拟数据，实际项目中应通过API获取
+            const appointments = [
+                { 
+                    id: 1, 
+                    memberName: '张三',
+                    serviceType: 'CONSULTING', 
+                    appointmentDate: '2024-03-20', 
+                    appointmentTime: '14:00', 
+                    status: 'CONFIRMED' 
+                },
+                { 
+                    id: 2, 
+                    memberName: '李四',
+                    serviceType: 'TRAINING', 
+                    appointmentDate: '2024-03-22', 
+                    appointmentTime: '10:00', 
+                    status: 'PENDING' 
+                }
+            ];
+
+            const appointmentList = document.getElementById('appointmentList');
+            appointmentList.innerHTML = appointments.map(appointment => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.memberName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${serviceTypeMap[appointment.serviceType] || appointment.serviceType}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentTime}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${statusMap[appointment.status] || appointment.status}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="cancelAppointment(${appointment.id})" class="text-red-600 hover:text-red-900">取消预约</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 提交预约表单
+        document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const appointment = {
+                memberName: formData.get('memberName'),
+                serviceType: formData.get('serviceType'),
+                appointmentDate: formData.get('appointmentDate'),
+                appointmentTime: formData.get('appointmentTime'),
+                remarks: formData.get('remarks')
+            };
+
+            // 模拟成功
+            alert('预约提交成功！');
+            e.target.reset();
+            loadAppointments();
+        });
+
+        // 取消预约
+        async function cancelAppointment(id) {
+            if (confirm('确定要取消这个预约吗？')) {
+                // 模拟成功
+                alert('预约已取消！');
+                loadAppointments();
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAppointments();
+        });
+    </script>
+</body>
+</html> 

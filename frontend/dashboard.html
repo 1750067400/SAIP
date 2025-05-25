@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产业园促进会管理系统 - 仪表盘</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 顶部导航 -->
+        <nav class="bg-white shadow-lg rounded-lg mb-8">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <h1 class="text-2xl font-bold text-gray-800">产业园促进会管理系统</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <a href="index.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">会员管理</a>
+                        <a href="dashboard.html" class="bg-indigo-600 text-white px-3 py-2 rounded-md text-sm font-medium">仪表盘</a>
+                        <a href="appointment.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">服务预约</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 数据概览卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                        <i class="fas fa-users text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-gray-500 text-sm">总会员数</h3>
+                        <p class="text-2xl font-semibold text-gray-800" id="totalMembers">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-building text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-gray-500 text-sm">产业园数量</h3>
+                        <p class="text-2xl font-semibold text-gray-800" id="totalParks">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-door-open text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-gray-500 text-sm">平均入住率</h3>
+                        <p class="text-2xl font-semibold text-gray-800" id="occupancyRate">0%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-user-friends text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-gray-500 text-sm">今日访客</h3>
+                        <p class="text-2xl font-semibold text-gray-800" id="todayVisitors">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">会员类型分布</h3>
+                <div id="memberTypeChart" class="h-80"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">产业园入住率</h3>
+                <div id="occupancyChart" class="h-80"></div>
+            </div>
+        </div>
+
+        <!-- 访客趋势图 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 class="text-lg font-semibold mb-4">访客趋势</h3>
+            <div id="visitorTrendChart" class="h-80"></div>
+        </div>
+
+        <!-- 会员等级分布 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">会员等级分布</h3>
+            <div id="memberLevelChart" class="h-80"></div>
+        </div>
+    </div>
+
+    <script>
+        let dashboardData = {};
+
+        // 加载统计数据
+        async function loadStatistics() {
+            try {
+                const response = await fetch('http://localhost:8080/api/statistics/dashboard');
+                const result = await response.json();
+                if (result.code === 200) {
+                    dashboardData = result.data;
+                    updateStatistics();
+                    initCharts();
+                }
+            } catch (error) {
+                console.error('获取统计数据失败:', error);
+                // 使用默认数据
+                dashboardData = {
+                    totalMembers: 509,
+                    totalParks: 4,
+                    occupancyRate: "85.8%",
+                    todayVisitors: 210,
+                    memberTypeData: { "公司": 235, "产业园单位": 274 },
+                    occupancyData: { "产业园A": 85, "产业园B": 92, "产业园C": 78, "产业园D": 88 },
+                    visitorTrend: [120, 132, 101, 134, 90, 230, 210],
+                    memberLevelData: { "普通会员": 335, "理事": 234, "常务理事": 158, "副会长": 135, "会长": 48 }
+                };
+                updateStatistics();
+                initCharts();
+            }
+        }
+
+        // 更新统计数据显示
+        function updateStatistics() {
+            document.getElementById('totalMembers').textContent = dashboardData.totalMembers;
+            document.getElementById('totalParks').textContent = dashboardData.totalParks;
+            document.getElementById('occupancyRate').textContent = dashboardData.occupancyRate;
+            document.getElementById('todayVisitors').textContent = dashboardData.todayVisitors;
+        }
+
+        // 初始化图表
+        function initCharts() {
+            // 会员类型分布图表
+            const memberTypeChart = echarts.init(document.getElementById('memberTypeChart'));
+            const memberTypeData = Object.entries(dashboardData.memberTypeData).map(([name, value]) => ({ name, value }));
+            memberTypeChart.setOption({
+                title: {
+                    text: '会员类型分布'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: '50%',
+                    data: memberTypeData,
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            });
+
+            // 产业园入住率图表
+            const occupancyChart = echarts.init(document.getElementById('occupancyChart'));
+            const occupancyNames = Object.keys(dashboardData.occupancyData);
+            const occupancyValues = Object.values(dashboardData.occupancyData);
+            occupancyChart.setOption({
+                title: {
+                    text: '产业园入住率'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: occupancyNames
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value}%'
+                    }
+                },
+                series: [{
+                    data: occupancyValues,
+                    type: 'bar'
+                }]
+            });
+
+            // 访客趋势图
+            const visitorTrendChart = echarts.init(document.getElementById('visitorTrendChart'));
+            visitorTrendChart.setOption({
+                title: {
+                    text: '近7天访客趋势'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: dashboardData.visitorTrend,
+                    type: 'line',
+                    smooth: true
+                }]
+            });
+
+            // 会员等级分布图
+            const memberLevelChart = echarts.init(document.getElementById('memberLevelChart'));
+            const memberLevelData = Object.entries(dashboardData.memberLevelData).map(([name, value]) => ({ name, value }));
+            memberLevelChart.setOption({
+                title: {
+                    text: '会员等级分布'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '20',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: memberLevelData
+                }]
+            });
+
+            // 响应式调整
+            window.addEventListener('resize', function() {
+                memberTypeChart.resize();
+                occupancyChart.resize();
+                visitorTrendChart.resize();
+                memberLevelChart.resize();
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStatistics();
+        });
+    </script>
+</body>
+</html> 
