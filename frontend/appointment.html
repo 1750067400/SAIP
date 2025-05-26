@@ -104,39 +104,27 @@
 
         // 加载预约列表
         async function loadAppointments() {
-            // 模拟数据，实际项目中应通过API获取
-            const appointments = [
-                { 
-                    id: 1, 
-                    memberName: '张三',
-                    serviceType: 'CONSULTING', 
-                    appointmentDate: '2024-03-20', 
-                    appointmentTime: '14:00', 
-                    status: 'CONFIRMED' 
-                },
-                { 
-                    id: 2, 
-                    memberName: '李四',
-                    serviceType: 'TRAINING', 
-                    appointmentDate: '2024-03-22', 
-                    appointmentTime: '10:00', 
-                    status: 'PENDING' 
+            try {
+                const response = await fetch('http://localhost:8080/api/appointments');
+                const result = await response.json();
+                if (result.code === 200) {
+                    const appointmentList = document.getElementById('appointmentList');
+                    appointmentList.innerHTML = result.data.map(appointment => `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.memberName}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${serviceTypeMap[appointment.serviceType] || appointment.serviceType}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentDate}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentTime}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${statusMap[appointment.status] || appointment.status}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <button onclick="cancelAppointment(${appointment.id})" class="text-red-600 hover:text-red-900">取消预约</button>
+                            </td>
+                        </tr>
+                    `).join('');
                 }
-            ];
-
-            const appointmentList = document.getElementById('appointmentList');
-            appointmentList.innerHTML = appointments.map(appointment => `
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.memberName}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${serviceTypeMap[appointment.serviceType] || appointment.serviceType}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentTime}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${statusMap[appointment.status] || appointment.status}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button onclick="cancelAppointment(${appointment.id})" class="text-red-600 hover:text-red-900">取消预约</button>
-                    </td>
-                </tr>
-            `).join('');
+            } catch (error) {
+                console.error('获取预约列表失败:', error);
+            }
         }
 
         // 提交预约表单
@@ -150,19 +138,47 @@
                 appointmentTime: formData.get('appointmentTime'),
                 remarks: formData.get('remarks')
             };
-
-            // 模拟成功
-            alert('预约提交成功！');
-            e.target.reset();
-            loadAppointments();
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/appointments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(appointment)
+                });
+                const result = await response.json();
+                if (result.code === 200) {
+                    alert('预约提交成功！');
+                    e.target.reset();
+                    loadAppointments();
+                } else {
+                    alert('预约提交失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('提交预约失败:', error);
+                alert('预约提交失败');
+            }
         });
 
         // 取消预约
         async function cancelAppointment(id) {
             if (confirm('确定要取消这个预约吗？')) {
-                // 模拟成功
-                alert('预约已取消！');
-                loadAppointments();
+                try {
+                    const response = await fetch(`http://localhost:8080/api/appointments/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    if (result.code === 200) {
+                        alert('预约已取消！');
+                        loadAppointments();
+                    } else {
+                        alert('取消预约失败: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('取消预约失败:', error);
+                    alert('取消预约失败');
+                }
             }
         }
 

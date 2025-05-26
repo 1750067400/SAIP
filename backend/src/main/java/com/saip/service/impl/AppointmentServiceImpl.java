@@ -1,55 +1,47 @@
 package com.saip.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import com.saip.entity.Appointment;
 import com.saip.service.AppointmentService;
+import com.saip.repository.AppointmentRepository;
 import java.util.List;
-import java.util.ArrayList;
 import java.time.LocalDateTime;
 
+@Service
 public class AppointmentServiceImpl implements AppointmentService {
 
-    private static final List<Appointment> appointments = new ArrayList<>();
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     @Override
     public List<Appointment> findAll() {
-        return new ArrayList<>(appointments);
+        return appointmentRepository.findAll();
     }
 
     @Override
     public Appointment findById(Long id) {
-        for (Appointment appointment : appointments) {
-            if (appointment.getId() != null && appointment.getId().equals(id)) {
-                return appointment;
-            }
-        }
-        return null;
+        return appointmentRepository.findById(id);
     }
 
     @Override
     public Appointment add(Appointment appointment) {
-        long newId = appointments.size() + 1;
-        Appointment newAppointment = new Appointment();
-        newAppointment.setId(newId);
-        newAppointment.setMemberName(appointment.getMemberName());
-        newAppointment.setServiceType(appointment.getServiceType());
-        newAppointment.setAppointmentDate(appointment.getAppointmentDate());
-        newAppointment.setAppointmentTime(appointment.getAppointmentTime());
-        newAppointment.setRemarks(appointment.getRemarks());
-        newAppointment.setStatus("PENDING");
-        newAppointment.setCreatedAt(LocalDateTime.now());
-        newAppointment.setUpdatedAt(LocalDateTime.now());
-        appointments.add(newAppointment);
-        return newAppointment;
+        appointment.setStatus("PENDING");
+        appointment.setCreatedAt(LocalDateTime.now());
+        appointment.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.add(appointment);
+        return appointment;
     }
 
     @Override
     public Appointment update(Appointment appointment) {
-        // 简化更新逻辑
+        appointment.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.update(appointment);
         return appointment;
     }
 
     @Override
     public void delete(Long id) {
-        appointments.removeIf(appointment -> appointment.getId() != null && appointment.getId().equals(id));
+        appointmentRepository.delete(id);
     }
 } 

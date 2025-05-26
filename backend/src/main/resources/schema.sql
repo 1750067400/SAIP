@@ -1,6 +1,10 @@
 CREATE TABLE IF NOT EXISTS member (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    company VARCHAR(200),
+    position VARCHAR(100),
+    phone VARCHAR(20),
+    email VARCHAR(100),
     type VARCHAR(50) NOT NULL,
     level VARCHAR(50) NOT NULL,
     created_at DATETIME NOT NULL,

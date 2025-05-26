@@ -1,53 +1,42 @@
 package com.saip.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import com.saip.entity.Member;
 import com.saip.service.MemberService;
+import com.saip.repository.MemberRepository;
 import java.util.List;
-import java.util.ArrayList;
-import java.time.LocalDateTime;
 
+@Service
 public class MemberServiceImpl implements MemberService {
 
-    private static final List<Member> members = new ArrayList<>();
+    @Autowired
+    private MemberRepository memberRepository;
 
     @Override
     public List<Member> findAll() {
-        return new ArrayList<>(members);
+        return memberRepository.findAll();
     }
 
     @Override
     public Member findById(Long id) {
-        for (Member member : members) {
-            if (member.getId() != null && member.getId().equals(id)) {
-                return member;
-            }
-        }
-        return null;
+        return memberRepository.findById(id);
     }
 
     @Override
     public Member add(Member member) {
-        // 简化ID生成
-        long newId = members.size() + 1;
-        Member newMember = new Member();
-        newMember.setId(newId);
-        newMember.setName(member.getName());
-        newMember.setType(member.getType());
-        newMember.setLevel(member.getLevel());
-        newMember.setCreatedAt(LocalDateTime.now());
-        newMember.setUpdatedAt(LocalDateTime.now());
-        members.add(newMember);
-        return newMember;
+        memberRepository.add(member);
+        return member;
     }
 
     @Override
     public Member update(Member member) {
-        // 简化更新逻辑
+        memberRepository.update(member);
         return member;
     }
 
     @Override
     public void delete(Long id) {
-        members.removeIf(member -> member.getId() != null && member.getId().equals(id));
+        memberRepository.delete(id);
     }
 } 

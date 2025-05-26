@@ -1,34 +1,42 @@
 package com.saip.controller;
 
 import java.util.List;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import com.saip.common.Result;
 import com.saip.entity.Member;
 import com.saip.service.MemberService;
-import com.saip.service.impl.MemberServiceImpl;
 
+@RestController
+@RequestMapping("/members")
 public class MemberController {
 
-    private MemberService memberService = new MemberServiceImpl();
+    @Autowired
+    private MemberService memberService;
 
+    @GetMapping
     public Result<List<Member>> findAll() {
         return Result.success(memberService.findAll());
     }
 
-    public Result<Member> findById(Long id) {
+    @GetMapping("/{id}")
+    public Result<Member> findById(@PathVariable Long id) {
         return Result.success(memberService.findById(id));
     }
 
-    public Result<Member> add(Member member) {
+    @PostMapping
+    public Result<Member> add(@RequestBody Member member) {
         return Result.success(memberService.add(member));
     }
 
-    public Result<Member> update(Long id, Member member) {
-        // 简化实现，避免方法调用问题
-        return Result.success(member);
+    @PutMapping("/{id}")
+    public Result<Member> update(@PathVariable Long id, @RequestBody Member member) {
+        member.setId(id);
+        return Result.success(memberService.update(member));
     }
 
-    public Result<Void> delete(Long id) {
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
         memberService.delete(id);
         return Result.success();
     }

@@ -7,7 +7,7 @@ import com.saip.entity.Member;
 public interface MemberRepository {
     List<Member> findAll();
     Member findById(Long id);
-    int add(Member member);
-    int update(Member member);
-    int delete(Long id);
+    void add(Member member);
+    void update(Member member);
+    void delete(Long id);
 } 

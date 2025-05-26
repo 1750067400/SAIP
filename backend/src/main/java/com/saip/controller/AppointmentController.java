@@ -1,34 +1,42 @@
 package com.saip.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import com.saip.common.Result;
 import com.saip.entity.Appointment;
 import com.saip.service.AppointmentService;
-import com.saip.service.impl.AppointmentServiceImpl;
-
 import java.util.List;
 
+@RestController
+@RequestMapping("/appointments")
 public class AppointmentController {
 
-    private AppointmentService appointmentService = new AppointmentServiceImpl();
+    @Autowired
+    private AppointmentService appointmentService;
 
+    @GetMapping
     public Result<List<Appointment>> findAll() {
         return Result.success(appointmentService.findAll());
     }
 
-    public Result<Appointment> findById(Long id) {
+    @GetMapping("/{id}")
+    public Result<Appointment> findById(@PathVariable Long id) {
         return Result.success(appointmentService.findById(id));
     }
 
-    public Result<Appointment> add(Appointment appointment) {
+    @PostMapping
+    public Result<Appointment> add(@RequestBody Appointment appointment) {
         return Result.success(appointmentService.add(appointment));
     }
 
-    public Result<Appointment> update(Long id, Appointment appointment) {
+    @PutMapping("/{id}")
+    public Result<Appointment> update(@PathVariable Long id, @RequestBody Appointment appointment) {
         appointment.setId(id);
         return Result.success(appointmentService.update(appointment));
     }
 
-    public Result<Void> delete(Long id) {
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
         appointmentService.delete(id);
         return Result.success();
     }
