@@ -1,13 +1,29 @@
 spring:
+  # —— 数据源配置 —— 
   datasource:
     url: jdbc:mysql://localhost:3306/saip?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
-    password: root
+    password: Xiaosa126
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # —— 强制执行 schema.sql —— 
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
 mybatis:
+  # Mapper XML 所在路径
   mapper-locations: classpath:mapper/*.xml
+  # 实体类别名包
   type-aliases-package: com.saip.entity
 
 server:
-  port: 8080 
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    root: INFO
+    com.saip: DEBUG
