@@ -5,74 +5,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>产业园促进会管理系统 - 服务预约</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .nav-link {
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover {
+            transform: translateX(5px);
+        }
+        .appointment-card {
+            transition: all 0.3s ease;
+        }
+        .appointment-card:hover {
+            transform: translateY(-5px);
+        }
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-        <!-- 顶部导航 -->
-        <nav class="bg-white shadow-lg rounded-lg mb-8">
-            <div class="max-w-7xl mx-auto px-4">
-                <div class="flex justify-between h-16">
-                    <div class="flex">
-                        <div class="flex-shrink-0 flex items-center">
-                            <h1 class="text-2xl font-bold text-gray-800">产业园促进会管理系统</h1>
-                        </div>
+<body class="bg-gray-50">
+    <!-- 加载遮罩 -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="bg-white p-4 rounded-lg shadow-lg flex items-center space-x-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <span class="text-gray-700">加载中...</span>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="toast hidden">
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <div class="flex items-center">
+                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                <span id="toastMessage"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-building text-indigo-600 text-2xl mr-2"></i>
+                        <h1 class="text-xl font-bold text-gray-800">产业园促进会管理系统</h1>
                     </div>
-                    <div class="flex items-center">
-                        <a href="index.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">会员管理</a>
-                        <a href="dashboard.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">仪表盘</a>
-                        <a href="appointment.html" class="bg-indigo-600 text-white px-3 py-2 rounded-md text-sm font-medium">服务预约</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-users mr-2"></i>会员管理
+                    </a>
+                    <a href="dashboard.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-chart-line mr-2"></i>仪表盘
+                    </a>
+                    <a href="appointment.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-calendar-check mr-2"></i>服务预约
+                    </a>
+                    <div class="relative" id="userMenu">
+                        <button class="flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                            <i class="fas fa-user-circle text-xl mr-2"></i>
+                            <span id="userName">加载中...</span>
+                            <i class="fas fa-chevron-down ml-2"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden" id="userDropdown">
+                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
+                                <i class="fas fa-user mr-2"></i>个人资料
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </nav>
+        </div>
+    </nav>
 
-        <!-- 预约系统 -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4">服务预约</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <form id="appointmentForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">会员姓名</label>
-                            <input type="text" name="memberName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+    <!-- 侧边栏 -->
+    <div class="fixed left-0 top-16 h-screen w-64 bg-white shadow-lg sidebar">
+        <div class="p-4">
+            <div class="space-y-2">
+                <a href="index.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                    <i class="fas fa-users w-6"></i>
+                    <span>会员管理</span>
+                </a>
+                <a href="dashboard.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                    <i class="fas fa-chart-line w-6"></i>
+                    <span>数据统计</span>
+                </a>
+                <a href="appointment.html" class="nav-link flex items-center text-indigo-600 bg-indigo-50 px-4 py-2 rounded-md">
+                    <i class="fas fa-calendar-check w-6"></i>
+                    <span>服务预约</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="ml-64 pt-16">
+        <div class="container mx-auto px-8 py-8">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">服务预约</h1>
+                <div class="flex items-center space-x-4">
+                    <button id="refreshBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-150 ease-in-out flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>刷新列表
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 预约表单卡片 -->
+                <div class="appointment-card bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">提交预约</h2>
+                    <form id="appointmentForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">会员姓名</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" name="memberName" class="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required
+                                           pattern="^[\u4e00-\u9fa5a-zA-Z0-9]{2,20}$"
+                                           title="请输入2-20个字符的姓名">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">服务类型</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                                        <i class="fas fa-tasks"></i>
+                                    </span>
+                                    <select name="serviceType" class="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                        <option value="">请选择服务类型</option>
+                                        <option value="CONSULTING">咨询服务</option>
+                                        <option value="TRAINING">培训服务</option>
+                                        <option value="NETWORKING">交流活动</option>
+                                        <option value="OTHER">其他服务</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">预约日期</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                                        <i class="fas fa-calendar"></i>
+                                    </span>
+                                    <input type="date" name="appointmentDate" class="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required
+                                           min="<?php echo date('Y-m-d'); ?>">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">预约时间</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                                        <i class="fas fa-clock"></i>
+                                    </span>
+                                    <input type="time" name="appointmentTime" class="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                </div>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">服务类型</label>
-                            <select name="serviceType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                <option value="CONSULTING">咨询服务</option>
-                                <option value="TRAINING">培训服务</option>
-                                <option value="NETWORKING">交流活动</option>
-                                <option value="OTHER">其他服务</option>
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+                            <div class="relative">
+                                <span class="absolute top-3 left-3 text-gray-500">
+                                    <i class="fas fa-comment"></i>
+                                </span>
+                                <textarea name="remarks" rows="3" class="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                          maxlength="200" placeholder="请输入备注信息（最多200字）"></textarea>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">预约日期</label>
-                            <input type="date" name="appointmentDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">预约时间</label>
-                            <input type="time" name="appointmentTime" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">备注</label>
-                            <textarea name="remarks" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
-                        </div>
-                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">提交预约</button>
+                        <button type="submit" class="w-full bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition duration-150 ease-in-out flex items-center justify-center">
+                            <i class="fas fa-paper-plane mr-2"></i>提交预约
+                        </button>
                     </form>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">我的预约</h3>
+
+                <!-- 预约列表卡片 -->
+                <div class="appointment-card bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">我的预约</h2>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">会员姓名</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">服务类型</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">预约日期</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">预约时间</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">会员姓名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">服务类型</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">预约日期</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">预约时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="appointmentList" class="bg-white divide-y divide-gray-200">
@@ -86,6 +228,110 @@
     </div>
 
     <script>
+        // API请求基础配置
+        const API_BASE_URL = 'http://localhost:8080/api';
+        
+        // 显示加载状态
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        // 隐藏加载状态
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        // 显示提示消息
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // 统一的请求处理函数
+        async function apiRequest(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    ...defaultOptions,
+                    ...options,
+                    headers: {
+                        ...defaultOptions.headers,
+                        ...options.headers
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const result = await response.json();
+                if (result.code !== 200) {
+                    throw new Error(result.message || '请求失败');
+                }
+                return result;
+            } catch (error) {
+                console.error('API请求失败:', error);
+                throw error;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 表单验证
+        function validateForm(formData) {
+            const memberName = formData.get('memberName');
+            const serviceType = formData.get('serviceType');
+            const appointmentDate = formData.get('appointmentDate');
+            const appointmentTime = formData.get('appointmentTime');
+
+            if (!memberName || !/^[\u4e00-\u9fa5a-zA-Z0-9]{2,20}$/.test(memberName)) {
+                throw new Error('请输入2-20个字符的姓名');
+            }
+
+            if (!serviceType) {
+                throw new Error('请选择服务类型');
+            }
+
+            if (!appointmentDate) {
+                throw new Error('请选择预约日期');
+            }
+
+            const selectedDate = new Date(appointmentDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (selectedDate < today) {
+                throw new Error('预约日期不能早于今天');
+            }
+
+            if (!appointmentTime) {
+                throw new Error('请选择预约时间');
+            }
+
+            return true;
+        }
+
         // 服务类型映射
         const serviceTypeMap = {
             'CONSULTING': '咨询服务',
@@ -104,26 +350,150 @@
 
         // 加载预约列表
         async function loadAppointments() {
+            // 先设置默认数据
+            const defaultAppointments = [
+                {
+                    id: 1,
+                    memberName: '未来科技有限公司',
+                    serviceType: 'CONSULTING',
+                    appointmentDate: '2024-03-20',
+                    appointmentTime: '10:00',
+                    status: 'CONFIRMED',
+                    remarks: '关于产业政策的咨询，重点关注科技创新扶持政策'
+                },
+                {
+                    id: 2,
+                    memberName: '智能制造产业园',
+                    serviceType: 'TRAINING',
+                    appointmentDate: '2024-03-21',
+                    appointmentTime: '14:30',
+                    status: 'PENDING',
+                    remarks: '企业数字化转型培训，包括智能制造、工业4.0等内容'
+                },
+                {
+                    id: 3,
+                    memberName: '创新电子科技',
+                    serviceType: 'NETWORKING',
+                    appointmentDate: '2024-03-22',
+                    appointmentTime: '09:00',
+                    status: 'COMPLETED',
+                    remarks: '产业交流活动，寻求技术合作机会'
+                },
+                {
+                    id: 4,
+                    memberName: '生物医药产业园',
+                    serviceType: 'CONSULTING',
+                    appointmentDate: '2024-03-23',
+                    appointmentTime: '15:00',
+                    status: 'CONFIRMED',
+                    remarks: '生物医药产业政策咨询，了解最新扶持政策'
+                },
+                {
+                    id: 5,
+                    memberName: '数字经济产业园',
+                    serviceType: 'TRAINING',
+                    appointmentDate: '2024-03-24',
+                    appointmentTime: '13:30',
+                    status: 'PENDING',
+                    remarks: '数字经济专题培训，包括大数据、人工智能等前沿技术'
+                },
+                {
+                    id: 6,
+                    memberName: '智慧城市科技',
+                    serviceType: 'OTHER',
+                    appointmentDate: '2024-03-25',
+                    appointmentTime: '11:00',
+                    status: 'CONFIRMED',
+                    remarks: '智慧城市项目对接会，寻找合作伙伴'
+                },
+                {
+                    id: 7,
+                    memberName: '新能源科技',
+                    serviceType: 'NETWORKING',
+                    appointmentDate: '2024-03-26',
+                    appointmentTime: '16:00',
+                    status: 'PENDING',
+                    remarks: '新能源产业交流会，探讨技术发展趋势'
+                },
+                {
+                    id: 8,
+                    memberName: '文化创意产业园',
+                    serviceType: 'TRAINING',
+                    appointmentDate: '2024-03-27',
+                    appointmentTime: '09:30',
+                    status: 'CONFIRMED',
+                    remarks: '文化创意产业培训，包括IP运营、数字内容创作等'
+                }
+            ];
+
+            // 立即显示默认数据
+            const appointmentList = document.getElementById('appointmentList');
+            appointmentList.innerHTML = defaultAppointments.map(appointment => `
+                <tr class="table-row">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${appointment.memberName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.serviceType === 'CONSULTING' ? '咨询' : 
+                        appointment.serviceType === 'TRAINING' ? '培训' : 
+                        appointment.serviceType === 'NETWORKING' ? '交流' : '其他'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentTime}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${appointment.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' : 
+                            appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
+                            appointment.status === 'CANCELLED' ? 'bg-red-100 text-red-800' : 
+                            'bg-gray-100 text-gray-800'}">
+                            ${appointment.status === 'CONFIRMED' ? '已确认' : 
+                            appointment.status === 'PENDING' ? '待确认' : 
+                            appointment.status === 'CANCELLED' ? '已取消' : 
+                            appointment.status === 'COMPLETED' ? '已完成' : '未知'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.remarks}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="deleteAppointment(${appointment.id})" class="text-red-600 hover:text-red-900 transition duration-150 ease-in-out">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
             try {
-                const response = await fetch('http://localhost:8080/api/appointments');
-                const result = await response.json();
-                if (result.code === 200) {
-                    const appointmentList = document.getElementById('appointmentList');
+                const result = await apiRequest('/appointments');
+                if (result && result.data) {
                     appointmentList.innerHTML = result.data.map(appointment => `
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.memberName}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${serviceTypeMap[appointment.serviceType] || appointment.serviceType}</td>
+                        <tr class="table-row">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${appointment.memberName}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.serviceType === 'CONSULTING' ? '咨询' : 
+                                appointment.serviceType === 'TRAINING' ? '培训' : 
+                                appointment.serviceType === 'NETWORKING' ? '交流' : '其他'}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentDate}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.appointmentTime}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${statusMap[appointment.status] || appointment.status}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    ${appointment.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' : 
+                                    appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
+                                    appointment.status === 'CANCELLED' ? 'bg-red-100 text-red-800' : 
+                                    'bg-gray-100 text-gray-800'}">
+                                    ${appointment.status === 'CONFIRMED' ? '已确认' : 
+                                    appointment.status === 'PENDING' ? '待确认' : 
+                                    appointment.status === 'CANCELLED' ? '已取消' : 
+                                    appointment.status === 'COMPLETED' ? '已完成' : '未知'}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.remarks}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <button onclick="cancelAppointment(${appointment.id})" class="text-red-600 hover:text-red-900">取消预约</button>
+                                <button onclick="deleteAppointment(${appointment.id})" class="text-red-600 hover:text-red-900 transition duration-150 ease-in-out">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </td>
                         </tr>
                     `).join('');
                 }
             } catch (error) {
                 console.error('获取预约列表失败:', error);
+                showToast('获取实时数据失败，显示默认数据', 'info');
             }
         }
 
@@ -131,33 +501,26 @@
         document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
-            const appointment = {
-                memberName: formData.get('memberName'),
-                serviceType: formData.get('serviceType'),
-                appointmentDate: formData.get('appointmentDate'),
-                appointmentTime: formData.get('appointmentTime'),
-                remarks: formData.get('remarks')
-            };
             
             try {
-                const response = await fetch('http://localhost:8080/api/appointments', {
+                validateForm(formData);
+                const appointment = {
+                    memberName: formData.get('memberName'),
+                    serviceType: formData.get('serviceType'),
+                    appointmentDate: formData.get('appointmentDate'),
+                    appointmentTime: formData.get('appointmentTime'),
+                    remarks: formData.get('remarks')
+                };
+                
+                await apiRequest('/appointments', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
                     body: JSON.stringify(appointment)
                 });
-                const result = await response.json();
-                if (result.code === 200) {
-                    alert('预约提交成功！');
-                    e.target.reset();
-                    loadAppointments();
-                } else {
-                    alert('预约提交失败: ' + result.message);
-                }
+                showToast('预约提交成功！', 'success');
+                e.target.reset();
+                loadAppointments();
             } catch (error) {
-                console.error('提交预约失败:', error);
-                alert('预约提交失败');
+                showToast(error.message, 'error');
             }
         });
 
@@ -165,25 +528,63 @@
         async function cancelAppointment(id) {
             if (confirm('确定要取消这个预约吗？')) {
                 try {
-                    const response = await fetch(`http://localhost:8080/api/appointments/${id}`, {
+                    await apiRequest(`/appointments/${id}`, {
                         method: 'DELETE'
                     });
-                    const result = await response.json();
-                    if (result.code === 200) {
-                        alert('预约已取消！');
-                        loadAppointments();
-                    } else {
-                        alert('取消预约失败: ' + result.message);
-                    }
+                    showToast('预约已取消！', 'success');
+                    loadAppointments();
                 } catch (error) {
-                    console.error('取消预约失败:', error);
-                    alert('取消预约失败');
+                    showToast('取消预约失败: ' + error.message, 'error');
                 }
             }
         }
 
+        // 刷新列表按钮
+        document.getElementById('refreshBtn').addEventListener('click', loadAppointments);
+
+        // 检查登录状态
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            loadUserInfo();
+        }
+
+        // 加载用户信息
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                document.getElementById('userName').textContent = user.name;
+            }
+        }
+
+        // 用户菜单
+        const userMenu = document.getElementById('userMenu');
+        const userDropdown = document.getElementById('userDropdown');
+        userMenu.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+
+        // 退出登录
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+
+        // 点击其他地方关闭下拉菜单
+        document.addEventListener('click', (e) => {
+            if (!userMenu.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             loadAppointments();
         });
     </script>
