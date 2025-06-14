@@ -1,39 +1,17 @@
 name: CI Pipeline
 
-# 触发条件：每次 push 到 main 分支 或者手动触发
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
 env:
-  BASE_IMAGE_NAME: saip-base
+  BASE_IMAGE_NAME: saip
   APP_IMAGE_NAME: localhost:5000/saip
-  PATH_TO_HOST_FOLDER_TO_SCAN: /var/lib/jenkins/workspace/saip
 
 jobs:
-  # 第一步：检测基础镜像相关文件是否变化
-  detect_changes:
-    runs-on: ubuntu-latest
-    outputs:
-      base_image_changed: ${{ steps.detect.outputs.base_image_changed }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Detect base-image changes
-        id: detect
-        run: |
-          changes=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          if echo "$changes" | grep -Eq 'pom.xml|Dockerfile.base'; then
-            echo "::set-output name=base_image_changed::true"
-          else
-            echo "::set-output name=base_image_changed::false"
-          fi
-
-  # 第二步：运行测试
+  # 第一步：运行测试
   test:
-    needs: detect_changes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -41,9 +19,8 @@ jobs:
       - name: Run Maven tests
         run: ./mvnw test
 
-  # 第三步：仅当基础镜像有变更时，重建基础镜像
+  # 第二步：构建基础镜像（每次都执行）
   build_base:
-    if: needs.detect_changes.outputs.base_image_changed == 'true'
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -52,9 +29,9 @@ jobs:
       - name: Build base Docker image
         run: docker build -t ${{ env.BASE_IMAGE_NAME }}:latest -f Dockerfile.base .
 
-  # 第四步：构建并推送应用镜像
+  # 第三步：构建并推送应用镜像
   build_and_push:
-    needs: [ test, build_base ]
+    needs: [ build_base ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -75,7 +52,7 @@ jobs:
           docker push ${{ env.APP_IMAGE_NAME }}:${{ github.run_number }}
           docker push ${{ env.APP_IMAGE_NAME }}:latest
 
-  # 第五步：在 Runner 本地环境部署（一般用于测试环境）
+  # 第四步：本地部署测试
   deploy_locally:
     needs: build_and_push
     runs-on: ubuntu-latest
@@ -86,14 +63,14 @@ jobs:
           docker rm saip  || true
           docker run -d --name saip -p 8080:8080 ${{ env.APP_IMAGE_NAME }}:latest
 
-  # 第六步：生产环境部署，借助 GitHub Environments 实现手动审批
+  # 第五步：生产部署（带审核）
   deploy_production:
     needs: build_and_push
     runs-on: ubuntu-latest
     environment:
-      name: production   # 请在 GitHub 仓库设置里为 production 环境配置 “Required reviewers”
+      name: production
     steps:
       - name: Deploy to Production
         run: |
           echo "开始部署到生产环境..."
-          # 在此处填入你的生产部署脚本，比如 kubectl/ansible/ssh 等
+          # 填入实际的生产部署逻辑（如 kubectl/ssh）

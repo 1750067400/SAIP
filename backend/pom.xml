@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.0</version>
+        <version>3.3.3</version>
         <relativePath/>
     </parent>
 
@@ -16,6 +16,34 @@
     <version>1.0.0</version>
     <name>SAIP Backend</name>
     <description>产业园促进会管理系统后端</description>
+
+    <repositories>
+        <repository>
+            <id>huaweicloud</id>
+            <name>Huawei Maven</name>
+            <url>https://repo.huaweicloud.com/repository/maven/</url>
+        </repository>
+        <repository>
+            <id>aliyun-spring-plugin</id>
+            <name>Aliyun Spring Plugins</name>
+            <url>https://maven.aliyun.com/repository/spring-plugin</url>
+        </repository>
+
+        <repository>
+            <id>spring-releases</id>
+            <url>https://repo.spring.io/release</url>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
+
+
+
+
+
+
 
     <properties>
         <java.version>11</java.version>
@@ -32,17 +60,14 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-          </dependency>
+        </dependency>
           
 
         <!-- 数据库相关依赖 -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
             <scope>runtime</scope>
         </dependency>
 
