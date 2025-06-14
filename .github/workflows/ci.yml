@@ -10,17 +10,14 @@ env:
   APP_IMAGE_NAME: localhost:5000/saip
 
 jobs:
-
-
-  # 第一步：运行测试
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Show current directory
-      - run: pwd
+        run: pwd
 
       - name: List files
-      - run: ls -al
+        run: ls -al
 
       - uses: actions/checkout@v3
 
