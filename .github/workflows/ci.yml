@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Maven tests
         working-directory: backend
-        run: ./mvnw test
+        run: mvn test
 
   build_and_push:
     needs: test
