@@ -13,18 +13,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - name: Show current directory
         run: pwd
 
       - name: List files
         run: ls -al
 
-      - uses: actions/checkout@v3
-
       - name: Run Maven tests
         run: ./mvnw test
 
-  # 第二步：构建基础镜像（每次都执行）
   build_base:
     needs: test
     runs-on: ubuntu-latest
