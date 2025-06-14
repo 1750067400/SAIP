@@ -6,8 +6,18 @@ on:
   workflow_dispatch:
 
 env:
-  BASE_IMAGE_NAME: saip
-  APP_IMAGE_NAME: localhost:5000/saip
+  # 镜像信息
+  APP_IMAGE_NAME: 47.99.186.40:14647/saip
+  # Nexus 认证
+  DOCKER_USERNAME: admin
+  DOCKER_PASSWORD: hhelibeblxyhh123
+  # 服务器 SSH 登录信息
+  DEV_HOST: 47.99.186.40
+  DEV_USER: root
+  SSH_PRIVATE_KEY: |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    （这里填你的私钥内容）
+    -----END OPENSSH PRIVATE KEY-----
 
 jobs:
   test:
@@ -22,59 +32,40 @@ jobs:
         run: ls -al
 
       - name: Run Maven tests
+        working-directory: backend
         run: ./mvnw test
 
-  build_base:
+  build_and_push:
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build base Docker image
-        run: docker build -t ${{ env.BASE_IMAGE_NAME }}:latest -f Dockerfile.base .
+      - name: Log in to Nexus
+        run: docker login 47.99.186.40:14647 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
-  # 第三步：构建并推送应用镜像
-  build_and_push:
-    needs: [ build_base ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Log in to Docker registry
-        uses: docker/login-action@v2
-        with:
-          registry: localhost:5000
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push images
+      - name: Build and push image
+        working-directory: backend
         run: |
           docker build \
-            --cache-from=${{ env.BASE_IMAGE_NAME }}:latest \
-            -t ${{ env.APP_IMAGE_NAME }}:${{ github.run_number }} \
-            -t ${{ env.APP_IMAGE_NAME }}:latest .
-          docker push ${{ env.APP_IMAGE_NAME }}:${{ github.run_number }}
-          docker push ${{ env.APP_IMAGE_NAME }}:latest
+            -t $APP_IMAGE_NAME:${{ github.run_number }} \
+            -t $APP_IMAGE_NAME:latest .
+          docker push $APP_IMAGE_NAME:${{ github.run_number }}
+          docker push $APP_IMAGE_NAME:latest
 
-  # 第四步：本地部署测试
-  deploy_locally:
+  deploy_development:
     needs: build_and_push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy locally with Docker
-        run: |
-          docker stop saip || true
-          docker rm saip  || true
-          docker run -d --name saip -p 8080:8080 ${{ env.APP_IMAGE_NAME }}:latest
-
-  # 第五步：生产部署（带审核）
-  deploy_production:
-    needs: build_and_push
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-    steps:
-      - name: Deploy to Production
-        run: |
-          echo "开始部署到生产环境..."
-          # 填入实际的生产部署逻辑（如 kubectl/ssh）
+      - name: Deploy to Development Server via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ env.DEV_HOST }}
+          username: ${{ env.DEV_USER }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
+          script: |
+            docker login 47.99.186.40:14647 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+            docker pull $APP_IMAGE_NAME:latest
+            docker stop saip || true
+            docker rm saip || true
+            docker run -d --name saip -p 8080:8080 $APP_IMAGE_NAME:latest
