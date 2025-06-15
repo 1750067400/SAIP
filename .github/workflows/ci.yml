@@ -6,22 +6,13 @@ on:
   workflow_dispatch:
 
 env:
-  # 镜像信息
-  APP_IMAGE_NAME: 47.99.186.40:14647/saip
-  # Nexus 认证
+  APP_IMAGE_NAME: 127.0.0.1:5000/saip
   DOCKER_USERNAME: admin
   DOCKER_PASSWORD: hhelibeblxyhh123
-  # 服务器 SSH 登录信息
-  DEV_HOST: 47.99.186.40
-  DEV_USER: root
-  SSH_PRIVATE_KEY: |
-    -----BEGIN OPENSSH PRIVATE KEY-----
-    （这里填你的私钥内容）
-    -----END OPENSSH PRIVATE KEY-----
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
@@ -37,14 +28,14 @@ jobs:
 
   build_and_push:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
-      - name: Log in to Nexus
-        run: docker login 47.99.186.40:14647 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - name: Log in to local Nexus (127.0.0.1:5000)
+        run: docker login 127.0.0.1:5000 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
-      - name: Build and push image
+      - name: Build and push image to local Nexus
         working-directory: backend
         run: |
           docker build \
@@ -53,19 +44,20 @@ jobs:
           docker push $APP_IMAGE_NAME:${{ github.run_number }}
           docker push $APP_IMAGE_NAME:latest
 
-  deploy_development:
+  deploy_local:
     needs: build_and_push
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Deploy to Development Server via SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ env.DEV_HOST }}
-          username: ${{ env.DEV_USER }}
-          key: ${{ env.SSH_PRIVATE_KEY }}
-          script: |
-            docker login 47.99.186.40:14647 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker pull $APP_IMAGE_NAME:latest
-            docker stop saip || true
-            docker rm saip || true
-            docker run -d --name saip -p 8080:8080 $APP_IMAGE_NAME:latest
+      - name: Log in to local Nexus again
+        run: docker login 127.0.0.1:5000 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
+      - name: Deploy container locally
+        run: |
+          docker pull $APP_IMAGE_NAME:latest
+          docker stop saip || true
+          docker rm saip || true
+          docker run -d --name saip \
+            --network devuser_default \
+            -e SPRING_PROFILES_ACTIVE=cloud \
+            -p 8080:8080 \
+            $APP_IMAGE_NAME:latest
