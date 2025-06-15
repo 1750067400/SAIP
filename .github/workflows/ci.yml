@@ -35,6 +35,10 @@ jobs:
       - name: Log in to local Nexus (127.0.0.1:5000)
         run: docker login 127.0.0.1:5000 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
+      - name: Package Spring Boot app
+        working-directory: backend
+        run: mvn clean package -DskipTests
+
       - name: Build and push image to local Nexus
         working-directory: backend
         run: |
@@ -43,6 +47,7 @@ jobs:
             -t $APP_IMAGE_NAME:latest .
           docker push $APP_IMAGE_NAME:${{ github.run_number }}
           docker push $APP_IMAGE_NAME:latest
+
 
   deploy_local:
     needs: build_and_push
