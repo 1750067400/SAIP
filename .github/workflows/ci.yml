@@ -54,10 +54,10 @@ jobs:
     needs: build_and_push
     runs-on: self-hosted
     steps:
-      - name: Log in to local Nexus again
+      - name: Log in to local Nexus
         run: docker login 127.0.0.1:5000 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
-      - name: Deploy container locally
+      - name: Deploy backend container
         run: |
           docker pull $APP_IMAGE_NAME:latest
           docker stop saip || true
@@ -67,3 +67,10 @@ jobs:
             -e SPRING_PROFILES_ACTIVE=cloud \
             -p 8080:8080 \
             $APP_IMAGE_NAME:latest
+
+      - name: Deploy frontend with Python server
+        working-directory: frontend
+        run: |
+          fuser -k 5005/tcp || true
+          nohup python3 -m http.server 5005 > frontend.log 2>&1 &
+
