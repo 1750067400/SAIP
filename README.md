@@ -18,7 +18,7 @@
 └── frontend/                # 前端页面
     ├── index.html          # 会员管理页面
     ├── dashboard.html      # 数据统计仪表盘
-    └── appointment.html    # 预约服务页面
+    └── appointment.html    # 预约服务
 ```
 
 ## 功能特性
