@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产业园促进会管理系统 - 项目管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .nav-link {
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover {
+            transform: translateX(5px);
+        }
+        .project-card {
+            transition: all 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+        .menu-group {
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .menu-group:last-child {
+            border-bottom: none;
+        }
+        .menu-group-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-button {
+            transition: all 0.2s ease;
+        }
+        .tab-button.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-planning { background-color: #fef3c7; color: #92400e; }
+        .status-active { background-color: #dbeafe; color: #1e40af; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+        .status-on-hold { background-color: #fecaca; color: #991b1b; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-building text-indigo-600 text-2xl mr-2"></i>
+                        <h1 class="text-xl font-bold text-gray-800">产业园促进会管理系统</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="dashboard.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-chart-line mr-2"></i>仪表盘
+                    </a>
+                    <a href="index.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-users mr-2"></i>会员管理
+                    </a>
+                    <a href="enterprise-portal.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-building mr-2"></i>企业服务
+                    </a>
+                    <a href="events.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-calendar-alt mr-2"></i>活动管理
+                    </a>
+                    <div class="relative" id="userMenu">
+                        <button class="flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                            <i class="fas fa-user-circle text-xl mr-2"></i>
+                            <span id="userName">加载中...</span>
+                            <i class="fas fa-chevron-down ml-2"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden" id="userDropdown">
+                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
+                                <i class="fas fa-user mr-2"></i>个人资料
+                            </a>
+                            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
+                                <i class="fas fa-cog mr-2"></i>系统设置
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 侧边栏 -->
+    <div class="fixed left-0 top-16 h-screen w-64 bg-white shadow-lg sidebar overflow-y-auto">
+        <div class="p-4">
+            <div class="space-y-4">
+                <!-- 核心功能 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">核心功能</div>
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-chart-line w-6"></i>
+                            <span>仪表盘</span>
+                        </a>
+                        <a href="index.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-users w-6"></i>
+                            <span>会员管理</span>
+                        </a>
+                        <a href="appointment.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-calendar-check w-6"></i>
+                            <span>服务预约</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 对外服务 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">对外服务</div>
+                    <div class="space-y-2">
+                        <a href="enterprise-portal.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-building w-6"></i>
+                            <span>企业服务</span>
+                        </a>
+                        <a href="events.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-calendar-alt w-6"></i>
+                            <span>活动管理</span>
+                        </a>
+                        <a href="external-communication.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-comments w-6"></i>
+                            <span>外部沟通</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 内部管理 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">内部管理</div>
+                    <div class="space-y-2">
+                        <a href="finance.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-dollar-sign w-6"></i>
+                            <span>财务管理</span>
+                        </a>
+                        <a href="projects.html" class="nav-link flex items-center text-indigo-600 bg-indigo-50 px-4 py-2 rounded-md">
+                            <i class="fas fa-project-diagram w-6"></i>
+                            <span>项目管理</span>
+                        </a>
+                        <a href="documents.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-file-alt w-6"></i>
+                            <span>文档管理</span>
+                        </a>
+                        <a href="communication.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-envelope w-6"></i>
+                            <span>内部沟通</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 数据分析 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">数据分析</div>
+                    <div class="space-y-2">
+                        <a href="reports.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-chart-bar w-6"></i>
+                            <span>高级报表</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 系统管理 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">系统管理</div>
+                    <div class="space-y-2">
+                        <a href="permissions.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-shield-alt w-6"></i>
+                            <span>权限管理</span>
+                        </a>
+                        <a href="settings.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-cog w-6"></i>
+                            <span>系统设置</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="ml-64 pt-16">
+        <div class="container mx-auto px-8 py-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">项目管理</h1>
+            
+            <!-- 项目概览卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="project-card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-project-diagram text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">总项目数</p>
+                            <p class="text-2xl font-bold text-gray-900">24</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="project-card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-play text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">进行中</p>
+                            <p class="text-2xl font-bold text-gray-900">12</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="project-card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-clock text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">待审批</p>
+                            <p class="text-2xl font-bold text-gray-900">5</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="project-card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">已完成</p>
+                            <p class="text-2xl font-bold text-gray-900">7</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 标签页导航 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div class="flex space-x-1 mb-6">
+                    <button class="tab-button active px-4 py-2 rounded-md text-sm font-medium" data-tab="application">
+                        <i class="fas fa-file-alt mr-2"></i>项目申报
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-md text-sm font-medium" data-tab="monitoring">
+                        <i class="fas fa-chart-line mr-2"></i>项目监控
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-md text-sm font-medium" data-tab="evaluation">
+                        <i class="fas fa-star mr-2"></i>项目评估
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-md text-sm font-medium" data-tab="reports">
+                        <i class="fas fa-chart-bar mr-2"></i>项目报告
+                    </button>
+                </div>
+
+                <!-- 项目申报 -->
+                <div id="application" class="tab-content active">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">项目申报</h2>
+                    <form id="projectApplicationForm" class="space-y-6 max-w-2xl">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">项目名称</label>
+                                <input type="text" name="projectName" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">项目类型</label>
+                                <select name="projectType" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                    <option value="">请选择项目类型</option>
+                                    <option value="RESEARCH">研发项目</option>
+                                    <option value="INNOVATION">创新项目</option>
+                                    <option value="INFRASTRUCTURE">基础设施</option>
+                                    <option value="TRAINING">培训项目</option>
+                                    <option value="EVENT">活动项目</option>
+                                    <option value="OTHER">其他</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">申请单位</label>
+                                <input type="text" name="applicant" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">项目负责人</label>
+                                <input type="text" name="projectManager" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
+                                <input type="date" name="startDate" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
+                                <input type="date" name="endDate" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">预算金额</label>
+                                <input type="number" name="budget" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">优先级</label>
+                                <select name="priority" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                    <option value="">请选择优先级</option>
+                                    <option value="HIGH">高</option>
+                                    <option value="MEDIUM">中</option>
+                                    <option value="LOW">低</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">项目描述</label>
+                            <textarea name="description" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">项目目标</label>
+                            <textarea name="objectives" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">预期成果</label>
+                            <textarea name="expectedOutcomes" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">项目计划书</label>
+                            <input type="file" name="projectPlan" accept=".pdf,.doc,.docx" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <p class="text-sm text-gray-500 mt-1">支持PDF、DOC、DOCX格式，文件大小不超过10MB</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition duration-150 ease-in-out flex items-center">
+                                <i class="fas fa-paper-plane mr-2"></i>提交申请
+                            </button>
+                            <button type="button" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition duration-150 ease-in-out">
+                                保存草稿
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 项目监控 -->
+                <div id="monitoring" class="tab-content">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">项目监控</h2>
+                    <div class="mb-4 flex space-x-4">
+                        <select id="statusFilter" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">全部状态</option>
+                            <option value="PLANNING">规划中</option>
+                            <option value="ACTIVE">进行中</option>
+                            <option value="COMPLETED">已完成</option>
+                            <option value="ON_HOLD">暂停</option>
+                        </select>
+                        <select id="typeFilter" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">全部类型</option>
+                            <option value="RESEARCH">研发项目</option>
+                            <option value="INNOVATION">创新项目</option>
+                            <option value="INFRASTRUCTURE">基础设施</option>
+                            <option value="TRAINING">培训项目</option>
+                            <option value="EVENT">活动项目</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="projectList">
+                        <!-- 项目卡片将通过JavaScript动态加载 -->
+                    </div>
+                </div>
+
+                <!-- 项目评估 -->
+                <div id="evaluation" class="tab-content">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">项目评估</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">项目名称</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">完成度</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">质量评分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">进度评分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">综合评分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">评估状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evaluationList" class="bg-white divide-y divide-gray-200">
+                                <!-- 评估列表将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 项目报告 -->
+                <div id="reports" class="tab-content">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">项目报告</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">项目状态分布</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">规划中</span>
+                                    <div class="flex items-center">
+                                        <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
+                                            <div class="bg-yellow-500 h-2 rounded-full" style="width: 20%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium">20%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">进行中</span>
+                                    <div class="flex items-center">
+                                        <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
+                                            <div class="bg-blue-500 h-2 rounded-full" style="width: 50%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium">50%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">已完成</span>
+                                    <div class="flex items-center">
+                                        <div class="w-32 bg-gray-200 rounded-full h-2 mr-2">
+                                            <div class="bg-green-500 h-2 rounded-full" style="width: 30%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium">30%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">项目类型分布</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">研发项目</span>
+                                    <span class="text-sm font-medium">8个</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">创新项目</span>
+                                    <span class="text-sm font-medium">6个</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">基础设施</span>
+                                    <span class="text-sm font-medium">4个</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">培训项目</span>
+                                    <span class="text-sm font-medium">3个</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">活动项目</span>
+                                    <span class="text-sm font-medium">3个</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换功能
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // 移除所有活动状态
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // 添加活动状态
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // 用户菜单切换
+        const userMenu = document.getElementById('userMenu');
+        const userDropdown = document.getElementById('userDropdown');
+        
+        userMenu.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+
+        // 点击外部关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!userMenu.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+
+        // 项目申报表单提交
+        document.getElementById('projectApplicationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            // 这里可以添加表单验证和提交逻辑
+            console.log('项目申报数据:', data);
+            alert('项目申报已提交，我们将尽快审核！');
+        });
+
+        // 模拟项目数据
+        const mockProjects = [
+            {
+                id: 1,
+                name: '产业园数字化转型项目',
+                type: 'INNOVATION',
+                status: 'ACTIVE',
+                progress: 75,
+                startDate: '2024-01-01',
+                endDate: '2024-06-30',
+                manager: '张三',
+                budget: 500000,
+                description: '推动产业园数字化转型，提升管理效率和服务质量。'
+            },
+            {
+                id: 2,
+                name: '企业孵化器建设',
+                type: 'INFRASTRUCTURE',
+                status: 'PLANNING',
+                progress: 25,
+                startDate: '2024-03-01',
+                endDate: '2024-12-31',
+                manager: '李四',
+                budget: 800000,
+                description: '建设现代化企业孵化器，为初创企业提供全方位支持。'
+            }
+        ];
+
+        // 渲染项目列表
+        function renderProjectList() {
+            const projectList = document.getElementById('projectList');
+            projectList.innerHTML = '';
+            
+            mockProjects.forEach(project => {
+                const projectCard = document.createElement('div');
+                projectCard.className = 'project-card bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg';
+                
+                const statusClass = {
+                    'PLANNING': 'status-planning',
+                    'ACTIVE': 'status-active',
+                    'COMPLETED': 'status-completed',
+                    'ON_HOLD': 'status-on-hold'
+                }[project.status];
+                
+                projectCard.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">${project.name}</h3>
+                        <span class="status-badge ${statusClass}">${project.status}</span>
+                    </div>
+                    <p class="text-gray-600 mb-4">${project.description}</p>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                <span>进度</span>
+                                <span>${project.progress}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="progress-bar bg-indigo-600 h-2 rounded-full" style="width: ${project.progress}%"></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                            <div><i class="fas fa-user mr-2"></i>${project.manager}</div>
+                            <div><i class="fas fa-calendar mr-2"></i>${project.startDate}</div>
+                            <div><i class="fas fa-dollar-sign mr-2"></i>¥${project.budget.toLocaleString()}</div>
+                            <div><i class="fas fa-tag mr-2"></i>${project.type}</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex space-x-2">
+                        <button class="text-indigo-600 hover:text-indigo-700 font-medium">查看详情</button>
+                        <button class="text-gray-600 hover:text-gray-700 font-medium">编辑</button>
+                    </div>
+                `;
+                projectList.appendChild(projectCard);
+            });
+        }
+
+        // 加载用户信息
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.name || '用户';
+        }
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            renderProjectList();
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产业园促进会管理系统 - 高级报表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .nav-link {
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover {
+            transform: translateX(5px);
+        }
+        .report-card {
+            transition: all 0.3s ease;
+        }
+        .report-card:hover {
+            transform: translateY(-2px);
+        }
+        .menu-group {
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .menu-group:last-child {
+            border-bottom: none;
+        }
+        .menu-group-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-button {
+            transition: all 0.2s ease;
+        }
+        .tab-button.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .chart-container {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-building text-indigo-600 text-2xl mr-2"></i>
+                        <h1 class="text-xl font-bold text-gray-800">产业园促进会管理系统</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="dashboard.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-chart-line mr-2"></i>仪表盘
+                    </a>
+                    <a href="index.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-users mr-2"></i>会员管理
+                    </a>
+                    <a href="enterprise-portal.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-building mr-2"></i>企业服务
+                    </a>
+                    <a href="events.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                        <i class="fas fa-calendar-alt mr-2"></i>活动管理
+                    </a>
+                    <div class="relative" id="userMenu">
+                        <button class="flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                            <i class="fas fa-user-circle text-xl mr-2"></i>
+                            <span id="userName">加载中...</span>
+                            <i class="fas fa-chevron-down ml-2"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden" id="userDropdown">
+                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
+                                <i class="fas fa-user mr-2"></i>个人资料
+                            </a>
+                            <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
+                                <i class="fas fa-cog mr-2"></i>系统设置
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 侧边栏 -->
+    <div class="fixed left-0 top-16 h-screen w-64 bg-white shadow-lg sidebar overflow-y-auto">
+        <div class="p-4">
+            <div class="space-y-4">
+                <!-- 核心功能 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">核心功能</div>
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-chart-line w-6"></i>
+                            <span>仪表盘</span>
+                        </a>
+                        <a href="index.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-users w-6"></i>
+                            <span>会员管理</span>
+                        </a>
+                        <a href="appointment.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-calendar-check w-6"></i>
+                            <span>服务预约</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 对外服务 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">对外服务</div>
+                    <div class="space-y-2">
+                        <a href="enterprise-portal.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-building w-6"></i>
+                            <span>企业服务</span>
+                        </a>
+                        <a href="events.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-calendar-alt w-6"></i>
+                            <span>活动管理</span>
+                        </a>
+                        <a href="external-communication.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-comments w-6"></i>
+                            <span>外部沟通</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 内部管理 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">内部管理</div>
+                    <div class="space-y-2">
+                        <a href="finance.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-dollar-sign w-6"></i>
+                            <span>财务管理</span>
+                        </a>
+                        <a href="projects.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-project-diagram w-6"></i>
+                            <span>项目管理</span>
+                        </a>
+                        <a href="documents.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-file-alt w-6"></i>
+                            <span>文档管理</span>
+                        </a>
+                        <a href="communication.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-envelope w-6"></i>
+                            <span>内部沟通</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 数据分析 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">数据分析</div>
+                    <div class="space-y-2">
+                        <a href="reports.html" class="nav-link flex items-center text-indigo-600 bg-indigo-50 px-4 py-2 rounded-md">
+                            <i class="fas fa-chart-bar w-6"></i>
+                            <span>高级报表</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 系统管理 -->
+                <div class="menu-group">
+                    <div class="menu-group-title">系统管理</div>
+                    <div class="space-y-2">
+                        <a href="permissions.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-shield-alt w-6"></i>
+                            <span>权限管理</span>
+                        </a>
+                        <a href="settings.html" class="nav-link flex items-center text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-md">
+                            <i class="fas fa-cog w-6"></i>
+                            <span>系统设置</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="ml-64 pt-16">
+        <div class="container mx-auto px-8 py-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">高级报表</h1>
+            
+            <!-- 标签页导航 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div class="flex space-x-1 mb-6">
+                    <button class="tab-button active px-4 py-2 rounded-md text-sm font-medium" data-tab="member">
+                        <i class="fas fa-users mr-2"></i>会员分析
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-md text-sm font-medium" data-tab="business">
+                        <i class="fas fa-chart-line mr-2"></i>业务分析
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-md text-sm font-medium" data-tab="industry">
+                        <i class="fas fa-industry mr-2"></i>行业分析
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-md text-sm font-medium" data-tab="custom">
+                        <i class="fas fa-cog mr-2"></i>自定义报表
+                    </button>
+                </div>
+
+                <!-- 会员分析 -->
+                <div id="member" class="tab-content active">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">会员分析</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">会员增长趋势</h3>
+                            <div id="memberGrowthChart" class="chart-container"></div>
+                        </div>
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">会员行业分布</h3>
+                            <div id="memberIndustryChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">会员等级分布</h3>
+                            <div id="memberLevelChart" class="chart-container"></div>
+                        </div>
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">会员活跃度分析</h3>
+                            <div id="memberActivityChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 业务分析 -->
+                <div id="business" class="tab-content">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">业务分析</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">服务预约统计</h3>
+                            <div id="appointmentChart" class="chart-container"></div>
+                        </div>
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">活动参与情况</h3>
+                            <div id="eventParticipationChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">收入趋势分析</h3>
+                            <div id="revenueChart" class="chart-container"></div>
+                        </div>
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">服务满意度</h3>
+                            <div id="satisfactionChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 行业分析 -->
+                <div id="industry" class="tab-content">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">行业分析</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">行业发展趋势</h3>
+                            <div id="industryTrendChart" class="chart-container"></div>
+                        </div>
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">政策影响分析</h3>
+                            <div id="policyImpactChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">市场竞争分析</h3>
+                            <div id="marketCompetitionChart" class="chart-container"></div>
+                        </div>
+                        <div class="report-card bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">投资热点分析</h3>
+                            <div id="investmentHotspotChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 自定义报表 -->
+                <div id="custom" class="tab-content">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">自定义报表</h2>
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">报表类型</label>
+                                <select id="reportType" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">请选择报表类型</option>
+                                    <option value="member">会员报表</option>
+                                    <option value="business">业务报表</option>
+                                    <option value="finance">财务报表</option>
+                                    <option value="activity">活动报表</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">时间范围</label>
+                                <select id="timeRange" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="7">最近7天</option>
+                                    <option value="30">最近30天</option>
+                                    <option value="90">最近90天</option>
+                                    <option value="365">最近一年</option>
+                                    <option value="custom">自定义</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">数据维度</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                        <span class="ml-2 text-sm text-gray-700">时间维度</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                        <span class="ml-2 text-sm text-gray-700">地区维度</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                        <span class="ml-2 text-sm text-gray-700">行业维度</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">图表类型</label>
+                                <select id="chartType" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="line">折线图</option>
+                                    <option value="bar">柱状图</option>
+                                    <option value="pie">饼图</option>
+                                    <option value="scatter">散点图</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">导出格式</label>
+                                <select id="exportFormat" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="pdf">PDF</option>
+                                    <option value="excel">Excel</option>
+                                    <option value="word">Word</option>
+                                    <option value="image">图片</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button id="generateReport" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition duration-150 ease-in-out">
+                                <i class="fas fa-chart-bar mr-2"></i>生成报表
+                            </button>
+                            <button id="exportReport" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-150 ease-in-out">
+                                <i class="fas fa-download mr-2"></i>导出报表
+                            </button>
+                            <button id="saveTemplate" class="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition duration-150 ease-in-out">
+                                <i class="fas fa-save mr-2"></i>保存模板
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换功能
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // 移除所有活动状态
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // 添加活动状态
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                
+                // 重新渲染图表
+                if (tabId === 'member') {
+                    renderMemberCharts();
+                } else if (tabId === 'business') {
+                    renderBusinessCharts();
+                } else if (tabId === 'industry') {
+                    renderIndustryCharts();
+                }
+            });
+        });
+
+        // 用户菜单切换
+        const userMenu = document.getElementById('userMenu');
+        const userDropdown = document.getElementById('userDropdown');
+        
+        userMenu.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+
+        // 点击外部关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!userMenu.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+
+        // 会员分析图表
+        function renderMemberCharts() {
+            // 会员增长趋势图
+            const memberGrowthChart = echarts.init(document.getElementById('memberGrowthChart'));
+            const memberGrowthOption = {
+                title: {
+                    text: '会员增长趋势',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: [120, 132, 101, 134, 90, 230, 210, 182, 191, 234, 290, 330],
+                    type: 'line',
+                    smooth: true,
+                    itemStyle: {
+                        color: '#4f46e5'
+                    }
+                }]
+            };
+            memberGrowthChart.setOption(memberGrowthOption);
+
+            // 会员行业分布图
+            const memberIndustryChart = echarts.init(document.getElementById('memberIndustryChart'));
+            const memberIndustryOption = {
+                title: {
+                    text: '会员行业分布',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: '50%',
+                    data: [
+                        {value: 335, name: '制造业'},
+                        {value: 310, name: '科技行业'},
+                        {value: 234, name: '服务业'},
+                        {value: 135, name: '金融业'},
+                        {value: 1548, name: '其他'}
+                    ],
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+            memberIndustryChart.setOption(memberIndustryOption);
+
+            // 会员等级分布图
+            const memberLevelChart = echarts.init(document.getElementById('memberLevelChart'));
+            const memberLevelOption = {
+                title: {
+                    text: '会员等级分布',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: '50%',
+                    data: [
+                        {value: 1048, name: '普通会员'},
+                        {value: 735, name: '银卡会员'},
+                        {value: 580, name: '金卡会员'},
+                        {value: 484, name: '钻石会员'}
+                    ]
+                }]
+            };
+            memberLevelChart.setOption(memberLevelOption);
+
+            // 会员活跃度分析图
+            const memberActivityChart = echarts.init(document.getElementById('memberActivityChart'));
+            const memberActivityOption = {
+                title: {
+                    text: '会员活跃度分析',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: [820, 932, 901, 934, 1290, 1330, 1320],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#10b981'
+                    }
+                }]
+            };
+            memberActivityChart.setOption(memberActivityOption);
+        }
+
+        // 业务分析图表
+        function renderBusinessCharts() {
+            // 服务预约统计图
+            const appointmentChart = echarts.init(document.getElementById('appointmentChart'));
+            const appointmentOption = {
+                title: {
+                    text: '服务预约统计',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['咨询', '培训', '活动']
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['1月', '2月', '3月', '4月', '5月', '6月']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name: '咨询',
+                        type: 'line',
+                        data: [120, 132, 101, 134, 90, 230]
+                    },
+                    {
+                        name: '培训',
+                        type: 'line',
+                        data: [220, 182, 191, 234, 290, 330]
+                    },
+                    {
+                        name: '活动',
+                        type: 'line',
+                        data: [150, 232, 201, 154, 190, 330]
+                    }
+                ]
+            };
+            appointmentChart.setOption(appointmentOption);
+
+            // 活动参与情况图
+            const eventParticipationChart = echarts.init(document.getElementById('eventParticipationChart'));
+            const eventParticipationOption = {
+                title: {
+                    text: '活动参与情况',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: '50%',
+                    data: [
+                        {value: 1048, name: '已参与'},
+                        {value: 735, name: '未参与'},
+                        {value: 580, name: '待确认'}
+                    ]
+                }]
+            };
+            eventParticipationChart.setOption(eventParticipationOption);
+
+            // 收入趋势分析图
+            const revenueChart = echarts.init(document.getElementById('revenueChart'));
+            const revenueOption = {
+                title: {
+                    text: '收入趋势分析',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['1月', '2月', '3月', '4月', '5月', '6月']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: [150, 230, 224, 218, 135, 147],
+                    type: 'line',
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: 'rgba(79, 70, 229, 0.3)'
+                            }, {
+                                offset: 1, color: 'rgba(79, 70, 229, 0.1)'
+                            }]
+                        }
+                    },
+                    itemStyle: {
+                        color: '#4f46e5'
+                    }
+                }]
+            };
+            revenueChart.setOption(revenueOption);
+
+            // 服务满意度图
+            const satisfactionChart = echarts.init(document.getElementById('satisfactionChart'));
+            const satisfactionOption = {
+                title: {
+                    text: '服务满意度',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: '50%',
+                    data: [
+                        {value: 1048, name: '非常满意'},
+                        {value: 735, name: '满意'},
+                        {value: 580, name: '一般'},
+                        {value: 484, name: '不满意'}
+                    ]
+                }]
+            };
+            satisfactionChart.setOption(satisfactionOption);
+        }
+
+        // 行业分析图表
+        function renderIndustryCharts() {
+            // 行业发展趋势图
+            const industryTrendChart = echarts.init(document.getElementById('industryTrendChart'));
+            const industryTrendOption = {
+                title: {
+                    text: '行业发展趋势',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['制造业', '科技行业', '服务业']
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['2020', '2021', '2022', '2023', '2024']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name: '制造业',
+                        type: 'line',
+                        data: [120, 132, 101, 134, 90]
+                    },
+                    {
+                        name: '科技行业',
+                        type: 'line',
+                        data: [220, 182, 191, 234, 290]
+                    },
+                    {
+                        name: '服务业',
+                        type: 'line',
+                        data: [150, 232, 201, 154, 190]
+                    }
+                ]
+            };
+            industryTrendChart.setOption(industryTrendOption);
+
+            // 政策影响分析图
+            const policyImpactChart = echarts.init(document.getElementById('policyImpactChart'));
+            const policyImpactOption = {
+                title: {
+                    text: '政策影响分析',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['政策A', '政策B', '政策C', '政策D', '政策E']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: [120, 200, 150, 80, 70],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#f59e0b'
+                    }
+                }]
+            };
+            policyImpactChart.setOption(policyImpactOption);
+
+            // 市场竞争分析图
+            const marketCompetitionChart = echarts.init(document.getElementById('marketCompetitionChart'));
+            const marketCompetitionOption = {
+                title: {
+                    text: '市场竞争分析',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: '50%',
+                    data: [
+                        {value: 1048, name: '我们'},
+                        {value: 735, name: '竞争对手A'},
+                        {value: 580, name: '竞争对手B'},
+                        {value: 484, name: '竞争对手C'}
+                    ]
+                }]
+            };
+            marketCompetitionChart.setOption(marketCompetitionOption);
+
+            // 投资热点分析图
+            const investmentHotspotChart = echarts.init(document.getElementById('investmentHotspotChart'));
+            const investmentHotspotOption = {
+                title: {
+                    text: '投资热点分析',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['AI', '新能源', '生物医药', '新材料', '数字经济']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: [820, 932, 901, 934, 1290],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#ec4899'
+                    }
+                }]
+            };
+            investmentHotspotChart.setOption(investmentHotspotOption);
+        }
+
+        // 自定义报表功能
+        document.getElementById('generateReport').addEventListener('click', () => {
+            const reportType = document.getElementById('reportType').value;
+            const timeRange = document.getElementById('timeRange').value;
+            const chartType = document.getElementById('chartType').value;
+            
+            if (!reportType) {
+                alert('请选择报表类型');
+                return;
+            }
+            
+            // 这里可以添加生成报表的逻辑
+            console.log('生成报表:', {reportType, timeRange, chartType});
+            alert('报表生成成功！');
+        });
+
+        document.getElementById('exportReport').addEventListener('click', () => {
+            const exportFormat = document.getElementById('exportFormat').value;
+            console.log('导出报表:', exportFormat);
+            alert(`报表已导出为${exportFormat.toUpperCase()}格式`);
+        });
+
+        document.getElementById('saveTemplate').addEventListener('click', () => {
+            console.log('保存模板');
+            alert('模板保存成功！');
+        });
+
+        // 加载用户信息
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.name || '用户';
+        }
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            renderMemberCharts();
+        });
+    </script>
+</body>
+</html> 

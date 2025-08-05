@@ -1,131 +1,106 @@
 package com.saip.entity;
 
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.saip.enums.MemberLevel;
-import com.saip.enums.MemberType;
-
+/**
+ * 会员实体类
+ */
+@Data
+@Entity
+@Table(name = "members")
 public class Member {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Column(nullable = false)
     private String name;
-    private String company;
-    private String position;
+    
+    @Column(name = "company_name")
+    private String companyName;
+    
+    @Column(name = "contact_person")
+    private String contactPerson;
+    
+    @Column
     private String phone;
+    
+    @Column
     private String email;
-    private MemberType type;
-    private MemberLevel level;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
-    public Member() {}
-
-    public Member(Long id, String name, String company, String position, String phone, String email, 
-                 MemberType type, MemberLevel level, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.name = name;
-        this.company = company;
-        this.position = position;
-        this.phone = phone;
-        this.email = email;
-        this.type = type;
-        this.level = level;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+    
+    @Column
+    private String address;
+    
+    @Column
+    private String industry;
+    
+    @Column(name = "member_type")
+    private String memberType;
+    
+    @Column(name = "join_date")
+    private LocalDate joinDate;
+    
+    @Column
+    private String status;
+    
+    @Column(name = "created_time")
+    private LocalDateTime createdTime;
+    
+    @Column(name = "updated_time")
+    private LocalDateTime updatedTime;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdTime = LocalDateTime.now();
+        updatedTime = LocalDateTime.now();
     }
-
-    public Long getId() {
-        return id;
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedTime = LocalDateTime.now();
     }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getCompany() {
-        return company;
-    }
-
-    public void setCompany(String company) {
-        this.company = company;
-    }
-
-    public String getPosition() {
-        return position;
-    }
-
-    public void setPosition(String position) {
-        this.position = position;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public MemberType getType() {
-        return type;
-    }
-
-    public void setType(MemberType type) {
-        this.type = type;
-    }
-
-    public MemberLevel getLevel() {
-        return level;
-    }
-
-    public void setLevel(MemberLevel level) {
-        this.level = level;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    @Override
-    public String toString() {
-        return "Member{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", company='" + company + '\'' +
-                ", position='" + position + '\'' +
-                ", phone='" + phone + '\'' +
-                ", email='" + email + '\'' +
-                ", type=" + type +
-                ", level=" + level +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
-    }
+    
+    // Getter and Setter methods
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
+    
+    public String getContactPerson() { return contactPerson; }
+    public void setContactPerson(String contactPerson) { this.contactPerson = contactPerson; }
+    
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    
+    public String getIndustry() { return industry; }
+    public void setIndustry(String industry) { this.industry = industry; }
+    
+    public String getMemberType() { return memberType; }
+    public void setMemberType(String memberType) { this.memberType = memberType; }
+    
+    public LocalDate getJoinDate() { return joinDate; }
+    public void setJoinDate(LocalDate joinDate) { this.joinDate = joinDate; }
+    
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    
+    public LocalDateTime getCreatedTime() { return createdTime; }
+    public void setCreatedTime(LocalDateTime createdTime) { this.createdTime = createdTime; }
+    
+    public LocalDateTime getUpdatedTime() { return updatedTime; }
+    public void setUpdatedTime(LocalDateTime updatedTime) { this.updatedTime = updatedTime; }
 } 

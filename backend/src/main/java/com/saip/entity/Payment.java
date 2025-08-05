@@ -1,82 +1,83 @@
 package com.saip.entity;
 
+import jakarta.persistence.*;
+import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * 支付实体类
+ */
+@Data
+@Entity
+@Table(name = "payments")
 public class Payment {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Column(name = "member_id")
     private Long memberId;
+    
+    @Column(name = "payment_type")
+    private String paymentType;
+    
+    @Column(nullable = false)
     private BigDecimal amount;
-    private LocalDateTime paymentTime;
+    
+    @Column(name = "payment_date")
+    private LocalDate paymentDate;
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
+    @Column
     private String status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
-    public Payment() {}
-
-    public Payment(Long id, Long memberId, BigDecimal amount, LocalDateTime paymentTime, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.memberId = memberId;
-        this.amount = amount;
-        this.paymentTime = paymentTime;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+    
+    @Column(name = "created_time")
+    private LocalDateTime createdTime;
+    
+    @Column(name = "updated_time")
+    private LocalDateTime updatedTime;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdTime = LocalDateTime.now();
+        updatedTime = LocalDateTime.now();
     }
-
-    public Long getId() {
-        return id;
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedTime = LocalDateTime.now();
     }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getMemberId() {
-        return memberId;
-    }
-
-    public void setMemberId(Long memberId) {
-        this.memberId = memberId;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public LocalDateTime getPaymentTime() {
-        return paymentTime;
-    }
-
-    public void setPaymentTime(LocalDateTime paymentTime) {
-        this.paymentTime = paymentTime;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    
+    // Getter and Setter methods
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public Long getMemberId() { return memberId; }
+    public void setMemberId(Long memberId) { this.memberId = memberId; }
+    
+    public String getPaymentType() { return paymentType; }
+    public void setPaymentType(String paymentType) { this.paymentType = paymentType; }
+    
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    
+    public LocalDate getPaymentDate() { return paymentDate; }
+    public void setPaymentDate(LocalDate paymentDate) { this.paymentDate = paymentDate; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    
+    public LocalDateTime getCreatedTime() { return createdTime; }
+    public void setCreatedTime(LocalDateTime createdTime) { this.createdTime = createdTime; }
+    
+    public LocalDateTime getUpdatedTime() { return updatedTime; }
+    public void setUpdatedTime(LocalDateTime updatedTime) { this.updatedTime = updatedTime; }
 } 

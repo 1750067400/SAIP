@@ -1,101 +1,81 @@
 package com.saip.entity;
 
+import jakarta.persistence.*;
+import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * 公司实体类
+ */
+@Data
+@Entity
+@Table(name = "companies")
 public class Company {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Column(nullable = false)
     private String name;
+    
+    @Column
     private String type;
+    
+    @Column
     private String address;
+    
+    @Column
     private String contact;
+    
+    @Column
     private String phone;
+    
+    @Column
     private String email;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
-    public Company() {}
-
-    public Company(Long id, String name, String type, String address, String contact, String phone, String email, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.name = name;
-        this.type = type;
-        this.address = address;
-        this.contact = contact;
-        this.phone = phone;
-        this.email = email;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+    
+    @Column(name = "created_time")
+    private LocalDateTime createdTime;
+    
+    @Column(name = "updated_time")
+    private LocalDateTime updatedTime;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdTime = LocalDateTime.now();
+        updatedTime = LocalDateTime.now();
     }
-
-    public Long getId() {
-        return id;
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedTime = LocalDateTime.now();
     }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getContact() {
-        return contact;
-    }
-
-    public void setContact(String contact) {
-        this.contact = contact;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    
+    // Getter and Setter methods
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+    
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    
+    public String getContact() { return contact; }
+    public void setContact(String contact) { this.contact = contact; }
+    
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public LocalDateTime getCreatedTime() { return createdTime; }
+    public void setCreatedTime(LocalDateTime createdTime) { this.createdTime = createdTime; }
+    
+    public LocalDateTime getUpdatedTime() { return updatedTime; }
+    public void setUpdatedTime(LocalDateTime updatedTime) { this.updatedTime = updatedTime; }
 } 

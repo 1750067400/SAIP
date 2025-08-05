@@ -36,6 +36,10 @@ public class Result<T> {
     public void setData(T data) {
         this.data = data;
     }
+    
+    public boolean isSuccess() {
+        return code != null && code == 200;
+    }
 
     public static <T> Result<T> success() {
         return success(null);

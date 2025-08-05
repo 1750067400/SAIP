@@ -1,16 +1,27 @@
 spring:
   # —— 数据源配置 —— 
   datasource:
-    url: jdbc:mysql://localhost:3306/saip?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/saip?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true
     username: root
-    password: hhelibeblxyhh123
+    password: 
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # —— JPA配置 ——
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
 
   # —— 强制执行 schema.sql —— 
   sql:
     init:
       mode: always
       schema-locations: classpath:schema.sql
+      continue-on-error: true
 
 mybatis:
   # Mapper XML 所在路径
@@ -18,12 +29,22 @@ mybatis:
   # 实体类别名包
   type-aliases-package: com.saip.entity
 
+# —— 服务器配置 ——
 server:
   port: 8080
   servlet:
     context-path: /api
 
+# —— 日志配置 ——
 logging:
   level:
     root: INFO
     com.saip: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# —— 文件上传配置 ——
+spring.servlet.multipart:
+  max-file-size: 10MB
+  max-request-size: 10MB

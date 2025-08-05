@@ -1,6 +1,14 @@
 #!/bin/bash
 
-echo "启动SAIP应用..."
+echo "启动产业园促进会管理系统后端..."
+
+# 检查Java版本
+java_version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
+if [ "$java_version" -lt "17" ]; then
+    echo "错误: 需要Java 17或更高版本"
+    echo "当前Java版本: $(java -version 2>&1 | head -n 1)"
+    exit 1
+fi
 
 # 检查Maven是否安装
 if ! command -v mvn &> /dev/null; then
@@ -10,14 +18,16 @@ fi
 
 # 清理并编译项目
 echo "编译项目..."
-mvn clean package -DskipTests
+mvn clean compile
 
-# 检查编译是否成功
 if [ $? -ne 0 ]; then
-    echo "错误: 项目编译失败"
+    echo "编译失败，请检查错误信息"
     exit 1
 fi
 
-# 运行应用
+# 启动应用
 echo "启动应用..."
-java -jar target/saip-backend-1.0.0.jar 
+mvn spring-boot:run
+
+echo "应用已启动，访问地址: http://localhost:8080/api"
+echo "测试API: http://localhost:8080/api/test/ping" 
