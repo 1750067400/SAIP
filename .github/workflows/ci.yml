@@ -2,74 +2,98 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ deploy ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+  security-events: write 
+
 env:
-  APP_IMAGE_NAME: 127.0.0.1:5000/saip
-  DOCKER_USERNAME: admin
-  DOCKER_PASSWORD: hhelibeblxyhh123
+  # APP_IMAGE_NAME: 127.0.0.1:5000/saip
+  # DOCKER_USERNAME: admin
+  # DOCKER_PASSWORD: hhelibeblxyhh123
+
+  REGISTRY: 127.0.0.1:14647
+  IMAGE_NAME: saip
+  SONAR_HOST_URL: http://47.84.187.219:18712
+  SONAR_PROJECT_KEY: saip
 
 jobs:
-  test:
+  build-test-scan-push:
     runs-on: self-hosted
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Show current directory
-        run: pwd
-
-      - name: List files
-        run: ls -al
-
-      - name: Run Maven tests
-        working-directory: backend
-        run: mvn test
-
-
-  build_and_push:
-    needs: test
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Log in to local Nexus (127.0.0.1:5000)
-        run: docker login 127.0.0.1:5000 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-
-      - name: Package Spring Boot app
-        working-directory: backend
-        run: mvn clean package -DskipTests
-
-      - name: Build and push image to local Nexus
-        working-directory: backend
+      - name: Show workspace & list files
         run: |
-          docker build \
-            -t $APP_IMAGE_NAME:${{ github.run_number }} \
-            -t $APP_IMAGE_NAME:latest .
-          docker push $APP_IMAGE_NAME:${{ github.run_number }}
-          docker push $APP_IMAGE_NAME:latest
+          pwd
+          ls -al
 
+      - name: Unit tests (backend)
+        working-directory: backend
+        run: mvn -B test
 
-  deploy_local:
-    needs: build_and_push
-    runs-on: self-hosted
-    steps:
-      - name: Log in to local Nexus
-        run: docker login 127.0.0.1:5000 -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-
-      - name: Deploy backend container
+      # === 新增：前端安全扫描（Semgrep） ===
+      - name: Frontend security scan (Semgrep)
         run: |
-          docker pull $APP_IMAGE_NAME:latest
-          docker stop saip || true
-          docker rm saip || true
-          docker run -d --name saip \
-            --network devuser_default \
-            -e SPRING_PROFILES_ACTIVE=cloud \
-            -p 8080:8080 \
-            $APP_IMAGE_NAME:latest
+          set -euo pipefail
+          mkdir -p /opt/semgrep-out
+          docker run --rm -v "/opt/semgrep-out:/out" -v "${{ github.workspace }}:/src" -w /src/frontend \
+            semgrep/semgrep:latest semgrep \
+            --config=p/owasp-top-ten --config=p/javascript --config=p/react \
+            --metrics=off \
+            --sarif --output /out/semgrep-results-${{ github.run_number }}.sarif
+          ls -lh /opt/semgrep-out
 
-      - name: Deploy frontend with Python server
-        working-directory: frontend
+      - name: Upload Semgrep SARIF as artifact
+        uses: actions/upload-artifact@v4
+        if: always()                 # 即使扫描失败也上传，便于排查
+        with:
+          name: semgrep-results-${{ github.run_number }}
+          path: /opt/semgrep-out/semgrep-results-${{ github.run_number }}.sarif
+          if-no-files-found: error
+
+      - name: SonarQube scan (backend)
+        working-directory: backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          fuser -k 5005/tcp || true
-          nohup python3 -m http.server 5005 --bind 0.0.0.0 > frontend.log 2>&1 &
+          mvn -B clean verify sonar:sonar \
+            -DskipTests \
+            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.login=${SONAR_TOKEN}
+
+      - name: Package app (skip tests)
+        working-directory: backend
+        run: mvn -B clean package -DskipTests
+
+      - name: Log in to Nexus Docker registry
+        run: echo "${{ secrets.NEXUS_PASSWORD }}" | docker login $REGISTRY -u "${{ secrets.NEXUS_USERNAME }}" --password-stdin
+
+      - name: Build & push docker image
+        working-directory: backend
+        env:
+          TAG: ${{ github.run_number }}
+        run: |
+          docker build -t $REGISTRY/${IMAGE_NAME}:$TAG -t $REGISTRY/${IMAGE_NAME}:latest .
+          docker push $REGISTRY/${IMAGE_NAME}:$TAG
+          docker push $REGISTRY/${IMAGE_NAME}:latest
+
+      - name: Export image tag for CD
+        run: echo "IMAGE_TAG=${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Upload artifact (image tag)
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-image-tag
+          path: |
+            ${{ github.workspace }}/.git/HEAD
+          retention-days: 1

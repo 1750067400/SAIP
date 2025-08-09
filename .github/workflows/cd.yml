@@ -1,0 +1,80 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [ "CI Pipeline" ]  
+    types: [ completed ]
+    branches: [ deploy ]       
+  workflow_dispatch:
+
+env:
+  REGISTRY: 127.0.0.1:14647 
+  IMAGE_NAME: saip
+  CONTAINER_NAME: saip
+  BACKEND_PORT: 8080
+  FRONTEND_PORT: 5005
+  NETWORK: infra_default
+  SPRING_PROFILE: cloud
+
+jobs:
+  deploy:
+    # 仅当 CI 成功时从 workflow_run 触发；如果是手动触发则忽略这个条件
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    environment:
+      name: production   # 或 staging；可在环境里开启手动审批/保护
+    concurrency:
+      group: cd-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout (for using artifacts if needed)
+        uses: actions/checkout@v4
+
+      - name: Log in to Nexus Docker registry
+        run: echo "${{ secrets.NEXUS_PASSWORD }}" | docker login $REGISTRY -u "${{ secrets.NEXUS_USERNAME }}" --password-stdin
+
+      # 方案 A：默认部署 latest
+      - name: Pull image (latest)
+        run: docker pull $REGISTRY/${IMAGE_NAME}:latest
+
+      # 方案 B（可选）：从 CI 的 artifact/变量读取具体 tag，再部署该 tag
+      # - name: Download artifact (image tag)
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: built-image-tag
+      # - name: Set IMAGE_TAG (fallback to latest)
+      #   run: echo "IMAGE_TAG=${IMAGE_TAG:-latest}" >> $GITHUB_ENV
+
+      - name: Stop & remove old container
+        run: |
+          docker stop ${CONTAINER_NAME} || true
+          docker rm ${CONTAINER_NAME} || true
+
+      - name: Run backend container
+        run: |
+          docker run -d --name ${CONTAINER_NAME} \
+            --network ${NETWORK} \
+            -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} \
+            -p ${BACKEND_PORT}:8080 \
+            $REGISTRY/${IMAGE_NAME}:latest
+
+      - name: Start simple frontend server
+        working-directory: frontend
+        run: |
+          fuser -k ${FRONTEND_PORT}/tcp || true
+          nohup python3 -m http.server ${FRONTEND_PORT} --bind 0.0.0.0 > frontend.log 2>&1 &
+
+      - name: Health check backend
+        run: |
+          for i in {1..30}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${BACKEND_PORT}/actuator/health || true)
+            if [ "$code" = "200" ]; then
+              echo "Backend healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend failed health check"
+          docker logs ${CONTAINER_NAME} --tail=200 || true
+          exit 1
