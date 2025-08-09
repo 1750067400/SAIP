@@ -38,11 +38,6 @@ jobs:
       # === 新增：前端安全扫描（Semgrep） ===
       - name: Frontend security scan (Semgrep)
         working-directory: frontend
-        env:
-          SEMGREP_RULES: >-
-            p/owasp-top-ten
-            p/javascript
-            p/react
         run: |
           # 若前端目录不存在则跳过（避免非前端仓库失败）
           if [ ! -d "." ]; then
@@ -57,20 +52,24 @@ jobs:
           # --severity ERROR 仅把高危作为失败条件（可改成 WARNING/INFO）
           # --sarif 输出 SARIF 供 GitHub Code Scanning 展示
           docker run --rm \
+            -v "/opt/semgrep-out:/out" \
             -v "$PWD:/src" \
-            -w /src \
+            -w /src/frontend \
             semgrep/semgrep:latest \
-            semgrep --config $SEMGREP_RULES \
+            semgrep --config=p/owasp-top-ten \
+                    --config=p/javascript \
+                    --config=p/react \
                     --metrics=off \
                     --severity ERROR \
-                    --sarif --output ../semgrep-results.sarif
+                    --sarif --output /out/semgrep-results-${GITHUB_RUN_NUMBER}.sarif
 
-      - name: Upload Semgrep SARIF to GitHub code scanning
-        if: always()   # 即便失败也上传结果，方便查看
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: semgrep-results.sarif
-          category: semgrep-frontend
+          - name: Upload Semgrep SARIF to GitHub code scanning
+            if: always()   # 即便失败也上传结果，方便查看
+            uses: github/codeql-action/upload-sarif@v3
+            with:
+              sarif_file: /opt/semgrep-out/semgrep-results-${{ github.run_number }}.sarif
+              category: semgrep-frontend
+
 
       - name: SonarQube scan (backend)
         working-directory: backend
