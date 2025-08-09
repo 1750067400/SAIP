@@ -45,25 +45,20 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /opt/semgrep-out
-          docker run --rm \
-            -v "/opt/semgrep-out:/out" \
-            -v "${{ github.workspace }}:/src" \
-            -w /src/frontend \
-            semgrep/semgrep:latest \
-              semgrep \
-                --config=p/owasp-top-ten \
-                --config=p/javascript \
-                --config=p/react \
-                --metrics=off \
-                --sarif --output /out/semgrep-results-${{ github.run_number }}.sarif
+          docker run --rm -v "/opt/semgrep-out:/out" -v "${{ github.workspace }}:/src" -w /src/frontend \
+            semgrep/semgrep:latest semgrep \
+            --config=p/owasp-top-ten --config=p/javascript --config=p/react \
+            --metrics=off \
+            --sarif --output /out/semgrep-results-${{ github.run_number }}.sarif
+          ls -lh /opt/semgrep-out
 
       - name: Upload Semgrep SARIF as artifact
         uses: actions/upload-artifact@v4
+        if: always()                 # 即使扫描失败也上传，便于排查
         with:
-          name: semgrep-results
+          name: semgrep-results-${{ github.run_number }}
           path: /opt/semgrep-out/semgrep-results-${{ github.run_number }}.sarif
-
-
+          if-no-files-found: error
 
       - name: SonarQube scan (backend)
         working-directory: backend
