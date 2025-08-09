@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: 127.0.0.1:15954
+  REGISTRY: 127.0.0.1:14647 
   IMAGE_NAME: saip
   CONTAINER_NAME: saip
   BACKEND_PORT: 8080
