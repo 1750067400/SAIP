@@ -51,12 +51,13 @@ jobs:
                 --config=p/react \
                 --metrics=off \
                 --sarif --output /out/semgrep-results-${{ github.run_number }}.sarif
-                - name: Upload Semgrep SARIF to GitHub code scanning
-                  if: always()   # 即便失败也上传结果，方便查看
-                  uses: github/codeql-action/upload-sarif@v3
-                  with:
-                    sarif_file: /opt/semgrep-out/semgrep-results-${{ github.run_number }}.sarif
-                    category: semgrep-frontend
+                
+      - name: Upload Semgrep SARIF to GitHub code scanning
+        if: always()   # 即便失败也上传结果，方便查看
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: /opt/semgrep-out/semgrep-results-${{ github.run_number }}.sarif
+          category: semgrep-frontend
 
 
       - name: SonarQube scan (backend)
