@@ -37,38 +37,26 @@ jobs:
 
       # === 新增：前端安全扫描（Semgrep） ===
       - name: Frontend security scan (Semgrep)
-        working-directory: frontend
         run: |
-          # 若前端目录不存在则跳过（避免非前端仓库失败）
-          if [ ! -d "." ]; then
-            echo "No frontend directory, skip semgrep."
-            exit 0
-          fi
-
-          docker pull semgrep/semgrep:latest
-          # 说明：
-          # --config 使用官方规则集
-          # --metrics=off 关闭遥测
-          # --severity ERROR 仅把高危作为失败条件（可改成 WARNING/INFO）
-          # --sarif 输出 SARIF 供 GitHub Code Scanning 展示
+          set -euo pipefail
+          mkdir -p /opt/semgrep-out
           docker run --rm \
             -v "/opt/semgrep-out:/out" \
-            -v "$PWD:/src" \
+            -v "${{ github.workspace }}:/src" \
             -w /src/frontend \
             semgrep/semgrep:latest \
-            semgrep --config=p/owasp-top-ten \
-                    --config=p/javascript \
-                    --config=p/react \
-                    --metrics=off \
-                    --severity ERROR \
-                    --sarif --output /out/semgrep-results-${GITHUB_RUN_NUMBER}.sarif
-
-          - name: Upload Semgrep SARIF to GitHub code scanning
-            if: always()   # 即便失败也上传结果，方便查看
-            uses: github/codeql-action/upload-sarif@v3
-            with:
-              sarif_file: /opt/semgrep-out/semgrep-results-${{ github.run_number }}.sarif
-              category: semgrep-frontend
+              semgrep \
+                --config=p/owasp-top-ten \
+                --config=p/javascript \
+                --config=p/react \
+                --metrics=off \
+                --sarif --output /out/semgrep-results-${{ github.run_number }}.sarif
+                - name: Upload Semgrep SARIF to GitHub code scanning
+                  if: always()   # 即便失败也上传结果，方便查看
+                  uses: github/codeql-action/upload-sarif@v3
+                  with:
+                    sarif_file: /opt/semgrep-out/semgrep-results-${{ github.run_number }}.sarif
+                    category: semgrep-frontend
 
 
       - name: SonarQube scan (backend)
