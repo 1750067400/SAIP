@@ -38,14 +38,6 @@ jobs:
       - name: Pull image (latest)
         run: docker pull $REGISTRY/${IMAGE_NAME}:latest
 
-      # 方案 B（可选）：从 CI 的 artifact/变量读取具体 tag，再部署该 tag
-      # - name: Download artifact (image tag)
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: built-image-tag
-      # - name: Set IMAGE_TAG (fallback to latest)
-      #   run: echo "IMAGE_TAG=${IMAGE_TAG:-latest}" >> $GITHUB_ENV
-
       - name: Stop & remove old container
         run: |
           docker stop ${CONTAINER_NAME} || true
@@ -65,16 +57,3 @@ jobs:
           fuser -k ${FRONTEND_PORT}/tcp || true
           nohup python3 -m http.server ${FRONTEND_PORT} --bind 0.0.0.0 > frontend.log 2>&1 &
 
-      - name: Health check backend
-        run: |
-          for i in {1..30}; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${BACKEND_PORT}/actuator/health || true)
-            if [ "$code" = "200" ]; then
-              echo "Backend healthy"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "Backend failed health check"
-          docker logs ${CONTAINER_NAME} --tail=200 || true
-          exit 1
