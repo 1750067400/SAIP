@@ -15,6 +15,7 @@ env:
   FRONTEND_PORT: 5005
   NETWORK: infra_default
   SPRING_PROFILE: cloud
+  FRONTEND_CONTAINER: saip-frontend
 
 jobs:
   deploy:
@@ -51,9 +52,30 @@ jobs:
             -p ${BACKEND_PORT}:8080 \
             $REGISTRY/${IMAGE_NAME}:latest
 
-      - name: Start simple frontend server
-        working-directory: frontend
+      - name: Sync frontend assets to host dir
         run: |
-          fuser -k ${FRONTEND_PORT}/tcp || true
-          nohup python3 -m http.server ${FRONTEND_PORT} --bind 0.0.0.0 > frontend.log 2>&1 &
+            set -e
+            DEPLOY_DIR=/opt/saip-frontend
+            mkdir -p "$DEPLOY_DIR"
 
+            # 选择要发布的目录：优先 build/、dist/，否则整个 frontend/
+            SRC=""
+            for d in frontend/build frontend/dist frontend; do
+            if [ -d "$d" ]; then SRC="$d"; break; fi
+            done
+            if [ -z "$SRC" ]; then
+            echo "No frontend directory found"; exit 1
+            fi
+
+            rsync -a --delete "$SRC"/ "$DEPLOY_DIR"/
+            echo "Synced $SRC -> $DEPLOY_DIR"
+
+        # 用 Nginx 容器托管前端
+      - name: Run frontend container (nginx)
+        run: |
+            docker rm -f ${FRONTEND_CONTAINER} || true
+            docker run -d --name ${FRONTEND_CONTAINER} \
+            --network ${NETWORK} \
+            -p ${FRONTEND_PORT}:80 \
+            -v /opt/saip-frontend:/usr/share/nginx/html:ro \
+            nginx:alpine
